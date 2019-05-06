@@ -1,6 +1,6 @@
 {
   "name": "@neoskop/nestjs",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "description": "Collection of useful NestJS Modules",
   "main": "index.js",
   "repository": "https://github.com/neoskop/nestjs",
@@ -41,7 +41,6 @@
     "zone.js": "0.9.1"
   },
   "dependencies": {
-    
     "tslib": "1.9.3"
   },
   "peerDependencies": {
