@@ -8,7 +8,7 @@ import { Request } from 'express';
 export interface HRBACModuleOptions {
     resolveUserIdForRequest(request : Request) : string|null;
     resolveUserRolesForRequest(request : Request) : string[];
-    resolveUserForRequest<T>(request : Request) : T;
+    resolveUserForRequest(request : Request) : any;
     defaultRole: string;
     roles: IRoles;
     permissions: PermissionTransfer;
