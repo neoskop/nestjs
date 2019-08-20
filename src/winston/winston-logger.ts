@@ -53,23 +53,48 @@ export class WinstonLogger implements NestLoggerService {
     }
 
     log(message: any, context?: string): void {
-        this.logger.info(message && typeof message === 'object' ? inspect(message) : String(message), { context });
+        if(typeof message === 'object') {
+            const { message: msg, ...rest } = message;
+            this.logger.info(String(msg), { context, ...rest });
+        } else {
+            this.logger.info(String(message), { context });
+        }
     }
 
     error(message: any, trace?: string, context?: string): void {
-        this.logger.error(message && typeof message === 'object' ? inspect(message) : String(message), { trace, context });
+        if(typeof message === 'object') {
+            const { message: msg, ...rest } = message;
+            this.logger.error(String(msg), { trace, context, ...rest });
+        } else {
+            this.logger.error(String(message), { trace, context });
+        }
     }
 
     warn(message: any, context?: string): void {
-        this.logger.warn(message && typeof message === 'object' ? inspect(message) : String(message), { context });
+        if(typeof message === 'object') {
+            const { message: msg, ...rest } = message;
+            this.logger.warn(String(msg), { context, ...rest });
+        } else {
+            this.logger.warn(String(message), { context });
+        }
     }
 
     debug(message: any, context?: string): void {
-        this.logger.debug(message && typeof message === 'object' ? inspect(message) : String(message), { context });
+        if(typeof message === 'object') {
+            const { message: msg, ...rest } = message;
+            this.logger.debug(String(msg), { context, ...rest });
+        } else {
+            this.logger.debug(String(message), { context });
+        }
     }
 
     verbose(message: any, context?: string): void {
-        this.logger.verbose(message && typeof message === 'object' ? inspect(message) : String(message), { context });
+        if(typeof message === 'object') {
+            const { message: msg, ...rest } = message;
+            this.logger.verbose(String(msg), { context, ...rest });
+        } else {
+            this.logger.verbose(String(message), { context });
+        }
     }
 
     http(message: string, meta: object) {
