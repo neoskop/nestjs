@@ -7,7 +7,7 @@ import { WinstonLogger } from './winston-logger';
 export class RequestLoggerMiddleware implements NestMiddleware<Request, Response> {
     readonly logger = WinstonLogger.getInstance();
 
-    toString() {
+    static toString() {
         return `class ${this.constructor.name}`;
     }
 
