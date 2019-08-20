@@ -36,6 +36,10 @@ export class WinstonLogger implements NestLoggerService {
         return (Logger as any).instance;
     }
 
+    static getChild(context : string) {
+        return this.getInstance().child(context);
+    }
+
     constructor(loggerOrFactory : _WinstonLogger|(() => _WinstonLogger)) { 
         if(typeof loggerOrFactory === 'function') {
             this.logger = (loggerOrFactory as Function)();
@@ -44,65 +48,35 @@ export class WinstonLogger implements NestLoggerService {
         }
     }
 
-    /*protected print(color: Chalk, message: any, context?: string, trace?: string) {
-        let output = ''
-
-        if (this.options.enableTimestamp) {
-            output += new Date().toLocaleString(undefined, {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric'
-            }) + ' ';
-        }
-
-        if (context) {
-            output += getContextColor(context)(`[${context}]`) + ' ';
-        }
-
-        if (message && typeof message === 'object') {
-            output += color(inspect(message));
-        } else {
-            output += color(message);
-        }
-
-        if (trace) {
-            output += '\n' + trace;
-        }
-
-        output += '\n';
-
-        process.stdout.write(output);
-    }*/
+    getWinston() {
+        return this.logger;
+    }
 
     log(message: any, context?: string): void {
         this.logger.info(message && typeof message === 'object' ? inspect(message) : String(message), { context });
-        // this.print(getLevelColor('log'), message, context);
     }
 
     error(message: any, trace?: string, context?: string): void {
         this.logger.error(message && typeof message === 'object' ? inspect(message) : String(message), { trace, context });
-        // this.print(getLevelColor('error'), message, context, trace);
     }
 
     warn(message: any, context?: string): void {
         this.logger.warn(message && typeof message === 'object' ? inspect(message) : String(message), { context });
-        // this.print(getLevelColor('warn'), message, context);
     }
 
     debug(message: any, context?: string): void {
         this.logger.debug(message && typeof message === 'object' ? inspect(message) : String(message), { context });
-        // this.print(getLevelColor('debug'), message, context);
     }
 
     verbose(message: any, context?: string): void {
         this.logger.verbose(message && typeof message === 'object' ? inspect(message) : String(message), { context });
-        // this.print(getLevelColor('verbose'), message, context);
     }
 
     http(message: string, meta: object) {
         this.logger.http(message, meta);
+    }
+
+    child(context: string) {
+        return this.logger.child({ context });
     }
 }
