@@ -7,6 +7,10 @@ import { WinstonLogger } from './winston-logger';
 export class RequestLoggerMiddleware implements NestMiddleware<Request, Response> {
     readonly logger = WinstonLogger.getInstance();
 
+    toString() {
+        return `class ${this.constructor.name}`;
+    }
+
     use(req?: Request, res?: Response, next?: Function) {
         const end = res!.end;
         const start = Date.now();
