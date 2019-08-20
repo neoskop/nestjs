@@ -9,7 +9,10 @@
   "scripts": {
     "prebuild": "rm -r dist",
     "build": "tsc",
-    "postbuild": "jq 'del(.scripts) | del(.devDependencies)' package.json > dist/package.json && cp README.md dist"
+    "postbuild": "jq 'del(.scripts) | del(.devDependencies)' package.json > dist/package.json && cp README.md dist",
+    "publish-next": "npm run build && npm publish dist --tag next",
+    "publish-latest-only": "npm run build && npm publish dist",
+    "publish-latest": "npm run publish-latest-only && npm dist-tag add @neoskop/nestjs@`jq '.version' package.json -r` next"
   },
   "devDependencies": {
     "@angular/core": "7.2.14",
