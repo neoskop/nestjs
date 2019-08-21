@@ -1,47 +1,18 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { ModuleMetadata, Type } from '@nestjs/common/interfaces';
-import { createLogger, Logger as WinstonLogger, LoggerOptions } from 'winston';
+import { DynamicModule, MiddlewareConsumer, Module, NestModule, Provider } from '@nestjs/common';
+
+import { RequestLoggerMiddleware } from './request-logger.middleware';
+import { WinstonAsyncOptions, WinstonModuleOptions, WinstonOptionsFactory } from './types';
 
 
-export interface WinstonModuleOptions extends LoggerOptions {
-}
 
-export interface WinstonAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-    useExisting?: Type<WinstonOptionsFactory>;
-    useClass?: Type<WinstonOptionsFactory>;
-    useFactory?: (...args : any[]) => Promise<WinstonModuleOptions> | WinstonModuleOptions,
-    inject?: any[];
-}
-
-
-export interface WinstonOptionsFactory {
-    createWinstonOptions() : Promise<WinstonModuleOptions> | WinstonModuleOptions;
-}
-
-export const WINSTON_OPTIONS = 'Winston:options';
-
-export const Logger = 'Winston:logger' as unknown as WinstonLogger;
-export type Logger = WinstonLogger;
-
-@Module({
-    providers: [
-        {
-            provide: Logger,
-            useFactory(options : LoggerOptions) {
-                return createLogger(options);
-            },
-            inject: [ WINSTON_OPTIONS ]
-        }
-    ],
-    exports: [ Logger ]
-})
-export class WinstonModule {
+@Module({})
+export class WinstonModule implements NestModule {
 
     static forRoot(options : WinstonModuleOptions) : DynamicModule {
         return {
             module: WinstonModule,
             providers: [
-                { provide: WINSTON_OPTIONS, useValue: options }
+                { provide: WinstonModuleOptions, useValue: options }
             ]
         }
     }
@@ -73,16 +44,25 @@ export class WinstonModule {
     protected static createAsyncOptionsProvider(options : WinstonAsyncOptions) : Provider {
         if(options.useFactory) {
             return {
-                provide: WINSTON_OPTIONS,
+                provide: WinstonModuleOptions,
                 useFactory: options.useFactory,
                 inject: options.inject
             }
         }
 
         return {
-            provide: WINSTON_OPTIONS,
+            provide: WinstonModuleOptions,
             useFactory: async (optionsFactory : WinstonOptionsFactory) => await optionsFactory.createWinstonOptions(),
             inject: [ options.useExisting || options.useClass ]
         }
+    }
+
+    constructor(protected readonly winstonOptions: WinstonModuleOptions) {}
+
+    configure(consumer: MiddlewareConsumer): void {
+        if(this.winstonOptions.logRequests) {
+            consumer.apply(RequestLoggerMiddleware).forRoutes(...(true === this.winstonOptions.logRequests ? ['/'] : this.winstonOptions.logRequests));
+        }
+        
     }
 }

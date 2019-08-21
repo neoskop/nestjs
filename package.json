@@ -1,6 +1,6 @@
 {
   "name": "@neoskop/nestjs",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Collection of useful NestJS Modules",
   "main": "index.js",
   "repository": "https://github.com/neoskop/nestjs",
@@ -9,12 +9,16 @@
   "scripts": {
     "prebuild": "rm -r dist",
     "build": "tsc",
-    "postbuild": "jq 'del(.scripts) | del(.devDependencies)' package.json > dist/package.json && cp README.md dist"
+    "postbuild": "jq 'del(.scripts) | del(.devDependencies)' package.json > dist/package.json && cp README.md dist",
+    "publish-next": "npm run build && npm publish dist --tag next",
+    "publish-latest-only": "npm run build && npm publish dist",
+    "publish-latest": "npm run publish-latest-only && npm dist-tag add @neoskop/nestjs@`jq '.version' package.json -r` next"
   },
   "devDependencies": {
     "@angular/core": "7.2.14",
     "@angular/platform-server": "7.2.14",
     "@angular/router": "7.2.14",
+    "@neoskop/adamant": "0.3.0-rc.6",
     "@neoskop/annotation-factory": "1.0.1",
     "@neoskop/hrbac": "1.0.1",
     "@neoskop/phantom": "1.3.0",
@@ -40,7 +44,6 @@
     "zone.js": "0.9.1"
   },
   "dependencies": {
-    "@neoskop/adamant": "0.3.0-rc.6",
     "tslib": "1.9.3"
   },
   "peerDependencies": {
