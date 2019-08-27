@@ -1,8 +1,10 @@
-import { Controller, Inject } from '@nestjs/common';
-import { ANGULAR_OPTIONS, AngularOptions } from './tokens';
 import 'zone.js';
 import 'zone.js/dist/zone-node';
+
+import { Controller, Inject } from '@nestjs/common';
+
 import { AngularController } from './angular.controller';
+import { ANGULAR_OPTIONS, AngularOptions } from './tokens';
 
 
 @Controller('/')
