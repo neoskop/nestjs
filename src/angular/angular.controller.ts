@@ -57,7 +57,8 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                     extraProviders: [
                         provideModuleMap(this._bundle!.LAZY_MODULE_MAP),
                         { provide: 'REQUEST', useValue: request },
-                        { provide: 'RESPONSE', useValue: response }
+                        { provide: 'RESPONSE', useValue: response },
+                        ...(this.options.providers || [])
                     ]
                 });
 

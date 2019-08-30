@@ -1,3 +1,4 @@
+import { StaticProvider } from '@angular/core';
 import { Request, Response } from 'express';
 
 export const ANGULAR_OPTIONS = 'ANGULAR_OPTIONS';
@@ -7,6 +8,7 @@ export interface IAngularAppOptions {
     www: string;
     main: string;
     target: string;
+    providers?: StaticProvider[];
     skip?: (req : Request) => boolean;
 }
 
