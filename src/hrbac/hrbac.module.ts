@@ -1,8 +1,16 @@
-import { Module, DynamicModule, Provider } from "@nestjs/common";
-import { HRBAC, PermissionTransfer, StaticRoleManager, StaticPermissionManager, RoleManager, PermissionManager } from '@neoskop/hrbac'
-import { IRoles } from '@neoskop/hrbac/ng'
-import { ModuleMetadata, Type } from "@nestjs/common/interfaces";
+import {
+    HRBAC,
+    PermissionManager,
+    PermissionTransfer,
+    RoleManager,
+    StaticPermissionManager,
+    StaticRoleManager,
+} from '@neoskop/hrbac';
+import { IRoles } from '@neoskop/hrbac/ng';
+import { DynamicModule, Module } from '@nestjs/common';
 import { Request } from 'express';
+
+import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 
 
 export interface HRBACModuleOptions {
@@ -12,18 +20,6 @@ export interface HRBACModuleOptions {
     defaultRole: string;
     roles: IRoles;
     permissions: PermissionTransfer;
-}
-
-export interface HRBACAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-    useExisting?: Type<HRBACOptionsFactory>;
-    useClass?: Type<HRBACOptionsFactory>;
-    useFactory?: (...args : any[]) => Promise<HRBACModuleOptions> | HRBACModuleOptions,
-    inject?: any[];
-}
-
-
-export interface HRBACOptionsFactory {
-    createHRBACOptions() : Promise<HRBACModuleOptions> | HRBACModuleOptions;
 }
 
 function isInjectionToken(token : any) : token is string | symbol {
@@ -72,7 +68,7 @@ export class HrbacModule {
         }
     }
 
-    static forRootAsync(options: HRBACAsyncOptions) : DynamicModule {
+    static forRootAsync(options: AsyncOptions<HRBACModuleOptions>) : DynamicModule {
         return {
             module: HrbacModule,
             imports: options.imports,
@@ -81,42 +77,12 @@ export class HrbacModule {
                 StaticPermissionManager,
                 { provide: RoleManager, useFactory: roleManagerFactory, inject: [ StaticRoleManager, HRBAC_OPTIONS ] },
                 { provide: PermissionManager, useFactory: permissionManagerFactory, inject: [ StaticPermissionManager, HRBAC_OPTIONS ] },
-                ...this.createAsyncProviders(options)
+                ...createAsyncProviders(options, HRBAC_OPTIONS)
             ], exports: [
                 RoleManager,
                 PermissionManager,
                 HRBAC_OPTIONS
             ]
-        }
-    }
-
-    protected static createAsyncProviders(options : HRBACAsyncOptions) : Provider[] {
-        if(options.useExisting || options.useFactory) {
-            return [ this.createAsyncOptionsProvider(options) ];
-        }
-
-        return [
-            this.createAsyncOptionsProvider(options),
-            {
-                provide: options.useClass!,
-                useClass: options.useClass!
-            }
-        ]
-    }
-
-    protected static createAsyncOptionsProvider(options : HRBACAsyncOptions) : Provider {
-        if(options.useFactory) {
-            return {
-                provide: HRBAC_OPTIONS,
-                useFactory: options.useFactory,
-                inject: options.inject
-            }
-        }
-
-        return {
-            provide: HRBAC_OPTIONS,
-            useFactory: async (optionsFactory : HRBACOptionsFactory) => await optionsFactory.createHRBACOptions(),
-            inject: [ options.useExisting || options.useClass! ]
         }
     }
 }

@@ -1,17 +1,8 @@
-import { DynamicModule, Global, Module, Provider, Type } from '@nestjs/common';
-import { ModuleOptions, OAuthClient, create } from 'simple-oauth2';
-import { ModuleMetadata } from '@nestjs/common/interfaces';
+import { DynamicModule, Global, Module, Type } from '@nestjs/common';
+import { create, ModuleOptions, OAuthClient } from 'simple-oauth2';
 
-export interface SimpleOauth2AsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-    useExisting?: Type<Oauth2OptionsFactory>;
-    useClass?: Type<Oauth2OptionsFactory>;
-    useFactory?: (...args : any[]) => Promise<ModuleOptions> | ModuleOptions,
-    inject?: any[];
-}
+import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 
-export interface Oauth2OptionsFactory {
-    createOauth2Options() : Promise<ModuleOptions> | ModuleOptions;
-}
 
 export const Oauth2Options = 'OAUTH2_OPTIONS' as any as Type<ModuleOptions>;
 export type Oauth2Options = ModuleOptions;
@@ -41,43 +32,13 @@ export class SimpleOauth2Module {
         }
     }
 
-    static forRootAsync(options: SimpleOauth2AsyncOptions) : DynamicModule {
+    static forRootAsync(options: AsyncOptions<ModuleOptions>) : DynamicModule {
         return {
             module: SimpleOauth2Module,
             imports: options.imports,
             providers: [
-                ...this.createAsyncProviders(options)
+                ...createAsyncProviders(options, Oauth2Options)
             ]
-        }
-    }
-
-    protected static createAsyncProviders(options : SimpleOauth2AsyncOptions) : Provider[] {
-        if(options.useExisting || options.useFactory) {
-            return [ this.createAsyncOptionsProvider(options) ];
-        }
-
-        return [
-            this.createAsyncOptionsProvider(options),
-            {
-                provide: options.useClass!,
-                useClass: options.useClass!
-            }
-        ]
-    }
-
-    protected static createAsyncOptionsProvider(options : SimpleOauth2AsyncOptions) : Provider {
-        if(options.useFactory) {
-            return {
-                provide: Oauth2Options,
-                useFactory: options.useFactory,
-                inject: options.inject
-            }
-        }
-
-        return {
-            provide: Oauth2Options,
-            useFactory: async (optionsFactory : Oauth2OptionsFactory) => await optionsFactory.createOauth2Options(),
-            inject: [ options.useExisting || options.useClass! ]
         }
     }
 }
