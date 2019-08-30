@@ -1,6 +1,5 @@
 import { DynamicModule, Global, Module, Type } from '@nestjs/common';
 import cloudinary, { ICloudinaryConfig } from 'cloudinary';
-import { ModuleOptions } from 'simple-oauth2';
 
 import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 
@@ -24,7 +23,7 @@ export type CloudinaryClient = typeof cloudinary;
     exports: [ CloudinaryClient ]
 })
 export class CloudinaryModule {
-    static forRoot(options : ModuleOptions) : DynamicModule {
+    static forRoot(options : ICloudinaryConfig) : DynamicModule {
         return {
             module: CloudinaryModule,
             providers: [
@@ -36,7 +35,7 @@ export class CloudinaryModule {
         }
     }
 
-    static forRootAsync(options: AsyncOptions<ModuleOptions>) : DynamicModule {
+    static forRootAsync(options: AsyncOptions<ICloudinaryConfig>) : DynamicModule {
         return {
             module: CloudinaryModule,
             imports: options.imports,
