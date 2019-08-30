@@ -75,7 +75,7 @@ export async function designDocFactory(...designDocs : any[]) {
 
                 return manager;
             },
-            inject: [ ADAMANT_CONNECTION_FACTORY, ADAMANT_PROVIDERS, ADAMANT_DESIGN_DOCS, ADAMANT_PROVIDER_VALUES ]
+            inject: [ ADAMANT_CONNECTION_FACTORY, ADAMANT_PROVIDERS, ADAMANT_DESIGN_DOCS, ADAMANT_PROVIDER_VALUES ] as (string|Type<any>)[]
         }
     ],
     exports: [ AdamantConnectionManager ]
@@ -142,7 +142,7 @@ export class AdamantModule {
         return {
             provide: ADAMANT_CONNECTION_FACTORY as any,
             useFactory: async (factory : AdamantConnectionFactoryFactory) => await factory.createAdamantConnection(),
-            inject: [ options.useExisting || options.useClass ]
+            inject: [ options.useExisting || options.useClass! ]
         }
     }
 }

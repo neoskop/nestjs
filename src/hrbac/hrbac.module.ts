@@ -116,7 +116,7 @@ export class HrbacModule {
         return {
             provide: HRBAC_OPTIONS,
             useFactory: async (optionsFactory : HRBACOptionsFactory) => await optionsFactory.createHRBACOptions(),
-            inject: [ options.useExisting || options.useClass ]
+            inject: [ options.useExisting || options.useClass! ]
         }
     }
 }

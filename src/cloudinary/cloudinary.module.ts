@@ -84,7 +84,7 @@ export class CloudinaryModule {
         return {
             provide: CloudinaryOptions,
             useFactory: async (optionsFactory : CloudinaryOptionsFactory) => await optionsFactory.createCloudinaryOptions(),
-            inject: [ options.useExisting || options.useClass ]
+            inject: [ options.useExisting || options.useClass! ]
         }
     }
 }

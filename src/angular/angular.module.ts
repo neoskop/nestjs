@@ -114,6 +114,6 @@ function createAsyncOptionsProvider<F, T>(options : AngularAsyncOptions<F, T>, t
     return {
         provide: token,
         useFactory: async (factory : AngularOptionsFactory) => await factory.createAngularOptions(),
-        inject: [ options.useExisting || options.useClass ]
+        inject: [ options.useExisting || options.useClass! ]
     };
 }

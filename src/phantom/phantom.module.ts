@@ -81,7 +81,7 @@ export class PhantomModule implements OnModuleInit {
         return {
             provide: PHANTOM_OPTIONS,
             useFactory: async (optionsFactory : PhantomOptionsFactory) => await optionsFactory.createPhantomOptions(),
-            inject: [ options.useExisting || options.useClass ]
+            inject: [ options.useExisting || options.useClass! ]
         }
     }
 

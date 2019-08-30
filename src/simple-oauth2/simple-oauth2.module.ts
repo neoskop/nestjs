@@ -77,7 +77,7 @@ export class SimpleOauth2Module {
         return {
             provide: Oauth2Options,
             useFactory: async (optionsFactory : Oauth2OptionsFactory) => await optionsFactory.createOauth2Options(),
-            inject: [ options.useExisting || options.useClass ]
+            inject: [ options.useExisting || options.useClass! ]
         }
     }
 }
