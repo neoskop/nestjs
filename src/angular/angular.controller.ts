@@ -64,7 +64,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
 
                 response.header('Content-Type', 'text/html');
                 if(this.nonceFactory) {
-                    response.end(html.replace(/<script type="text\/javascript"/g, `$& nonce="${this.nonceFactory(request, response)}"`));
+                    response.end(html.replace(/<script(?: type="text\/javascript")?/g, `$& nonce="${this.nonceFactory(request, response)}"`));
                 } else {
                     response.end(html);
                 }
