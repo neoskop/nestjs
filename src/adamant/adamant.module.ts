@@ -14,6 +14,7 @@ import {
 } from '@neoskop/adamant';
 import { DynamicModule, Global, Module, Provider, Type, Inject } from '@nestjs/common';
 import { ModuleMetadata } from '@nestjs/common/interfaces';
+import { AdamantHealthIndicator } from './adamant.health';
 
 
 export interface AdamantOptions {
@@ -76,9 +77,10 @@ export async function designDocFactory(...designDocs : any[]) {
                 return manager;
             },
             inject: [ ADAMANT_CONNECTION_FACTORY, ADAMANT_PROVIDERS, ADAMANT_DESIGN_DOCS, ADAMANT_PROVIDER_VALUES ] as (string|Type<any>)[]
-        }
+        },
+        AdamantHealthIndicator
     ],
-    exports: [ AdamantConnectionManager ]
+    exports: [ AdamantConnectionManager, AdamantHealthIndicator ]
 })
 export class AdamantModule {
 
