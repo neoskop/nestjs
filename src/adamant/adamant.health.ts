@@ -1,6 +1,7 @@
 import { AdamantConnectionManager } from '@neoskop/adamant';
 import { Injectable } from '@nestjs/common';
 import { HealthIndicator } from '@nestjs/terminus';
+import url from 'url';
 
 const TIMEOUT = Symbol.for('Timeout');
 
@@ -21,7 +22,7 @@ export class AdamantHealthIndicator extends HealthIndicator {
             } catch {
                 isConnectionHealthy = false;
             }
-            info[conn.name] = isConnectionHealthy;
+            info[url.parse(conn.name).pathname!.substr(1)] = isConnectionHealthy;
             isHealthy = isHealthy && isConnectionHealthy;
         }
 
