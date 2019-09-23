@@ -5,9 +5,9 @@ export const ANGULAR_OPTIONS = 'ANGULAR_OPTIONS';
 export const ANGULAR_LOCALE_OPTIONS = 'ANGULAR_LOCALE_OPTIONS';
 
 export interface IAngularAppOptions {
-    www: string;
-    main: string;
-    target: string;
+    www?: string;
+    main?: string;
+    target?: string;
     providers?: StaticProvider[];
     skip?: (req : Request) => boolean;
 }

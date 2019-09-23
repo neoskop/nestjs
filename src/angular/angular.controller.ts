@@ -15,10 +15,10 @@ import { IAngularAppOptions } from './tokens';
 
 @Controller()
 export class AngularController<T extends IAngularAppOptions = IAngularAppOptions> {
-    protected readonly _static = this.mode === 'ssr' ? express.static(path.resolve(this.options.www), { index: false }) : null;
-    protected readonly _template = this.mode === 'ssr' ? fs.readFileSync(path.join(this.options.www, 'index.html'), 'utf-8') : null;
-    protected readonly _bundle = this.mode === 'ssr' ? loadBundle(this.options.main) : null;
-    protected readonly _proxy = this.mode === 'proxy' ? proxy({ target: this.options.target, changeOrigin: true, ws: true }) : null;
+    protected readonly _static = this.mode === 'ssr' && this.options.www ? express.static(path.resolve(this.options.www), { index: false }) : null;
+    protected readonly _template = this.mode === 'ssr' && this.options.www ? fs.readFileSync(path.join(this.options.www, 'index.html'), 'utf-8') : null;
+    protected readonly _bundle = this.mode === 'ssr' && this.options.main ? loadBundle(this.options.main) : null;
+    protected readonly _proxy = this.mode === 'proxy' && this.options.target ? proxy({ target: this.options.target, changeOrigin: true, ws: true }) : null;
 
     protected readonly router = express.Router();
 
@@ -29,8 +29,10 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     }
 
     protected init() {
-        this.router.get('*.*', this.getStaticAssets.bind(this));
-        this.router.get('*', this.getAngular.bind(this));
+        if((this._static && this._template && this._bundle) || this._proxy) {
+            this.router.get('*.*', this.getStaticAssets.bind(this));
+            this.router.get('*', this.getAngular.bind(this));
+        }
     }
 
     protected checkSkip(req: express.Request) {
