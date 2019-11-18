@@ -21,11 +21,13 @@ export interface AdamantOptions {
     factory: ConnectionFactory;
     designDocs?: Type<any>[];
     providers?: any[];
+    viewWarmup?: 'sync' | 'async' | 'none' | false | null
 }
 
 export interface AdamantAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
     providers?: any[];
     designDocs?: Type<any>[];
+    viewWarmup?: 'sync' | 'async' | 'none' | false | null
     useExisting?: Type<AdamantConnectionFactoryFactory>;
     useClass?: Type<AdamantConnectionFactoryFactory>;
     useFactory?: (...args : any[]) => Promise<ConnectionFactory> | ConnectionFactory,
@@ -39,6 +41,7 @@ export interface AdamantConnectionFactoryFactory {
 export const ADAMANT_PROVIDERS = 'ADAMANT_PROVIDERS';
 export const ADAMANT_DESIGN_DOCS = 'ADAMANT_DESIGN_DOCS';
 export const ADAMANT_PROVIDER_VALUES = 'ADAMANT_PROVIDER_VALUES';
+export const ADAMANT_VIEW_WARMUP = 'ADAMANT_VIEW_WARMUP';
 
 export async function designDocFactory(...designDocs : any[]) {
     return designDocs;
@@ -49,7 +52,7 @@ export async function designDocFactory(...designDocs : any[]) {
     providers: [
         {
             provide: AdamantConnectionManager,
-            async useFactory(factory: ConnectionFactory, providers : any[], designDocs : any[], deps : any[]) {
+            async useFactory(factory: ConnectionFactory, providers : any[], designDocs : any[], deps : any[], viewWarmUp: 'sync' | 'async' | 'none' | false) {
                 const injector = Injector.create({
                     providers: [
                         { provide: ADAMANT_ID, useFactory: adamantIdFactory, deps: [] },
@@ -66,8 +69,17 @@ export async function designDocFactory(...designDocs : any[]) {
                         const metadata = DesignDocMetadataCollection.create(designDoc.constructor as any);
                         await manager.getRepository(metadata.entity).persistDesignDoc(designDoc);
 
-                        for(const view of metadata.views) {
-                            await manager.getRepository(metadata.entity).view(designDoc.constructor as any, view, { depth: 0 });
+                        if(viewWarmUp === 'sync' || viewWarmUp === 'async') {
+                            const opts : { stale?: 'update_after' } = {};
+
+                            if(viewWarmUp === 'async') {
+                                opts.stale = 'update_after';
+                            }
+
+                            for(const view of metadata.views) {
+                                await manager.getRepository(metadata.entity).view(designDoc.constructor as any, view, { depth: 0, ...opts });
+                            }
+
                         }
                     }
                 } catch(e) {
@@ -76,7 +88,7 @@ export async function designDocFactory(...designDocs : any[]) {
 
                 return manager;
             },
-            inject: [ ADAMANT_CONNECTION_FACTORY, ADAMANT_PROVIDERS, ADAMANT_DESIGN_DOCS, ADAMANT_PROVIDER_VALUES ] as (string|Type<any>)[]
+            inject: [ ADAMANT_CONNECTION_FACTORY, ADAMANT_PROVIDERS, ADAMANT_DESIGN_DOCS, ADAMANT_PROVIDER_VALUES, ADAMANT_VIEW_WARMUP ] as (string|Type<any>)[]
         },
         AdamantHealthIndicator
     ],
@@ -90,6 +102,7 @@ export class AdamantModule {
             providers: [
                 { provide: ADAMANT_CONNECTION_FACTORY as any, useValue: options.factory },
                 { provide: ADAMANT_PROVIDERS, useValue: options.providers || [] },
+                { provide: ADAMANT_VIEW_WARMUP, useValue: null == options.viewWarmup ? 'sync' : options.viewWarmup },
                 { provide: ADAMANT_PROVIDER_VALUES, useFactory: (...deps: any[]) => deps, inject: options.providers || [] },
                 {
                     provide: ADAMANT_DESIGN_DOCS,
@@ -107,6 +120,7 @@ export class AdamantModule {
             providers: [
                 ...this.createAsyncProviders(options),
                 { provide: ADAMANT_PROVIDERS, useValue: options.providers || [] },
+                { provide: ADAMANT_VIEW_WARMUP, useValue: null == options.viewWarmup ? 'sync' : options.viewWarmup },
                 { provide: ADAMANT_PROVIDER_VALUES, useFactory: (...deps: any[]) => deps, inject: options.providers || [] },
                 {
                     provide: ADAMANT_DESIGN_DOCS,
