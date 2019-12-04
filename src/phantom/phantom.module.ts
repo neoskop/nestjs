@@ -1,9 +1,9 @@
 import { AopManager } from '@neoskop/phantom';
-import { DynamicModule, Module, Provider, Logger } from '@nestjs/common';
-import { ModuleMetadata, OnModuleInit, Type } from '@nestjs/common/interfaces';
-import { AspectExplorerService } from './aspect-explorer.service';
-import { AsyncOptions, createAsyncProviders } from '../utils/providers';
+import { DynamicModule, Logger, Module } from '@nestjs/common';
+import { OnModuleInit } from '@nestjs/common/interfaces';
+
 import { ExplorerService } from '../explorer';
+import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 import { Aspect } from './aspect.decorator';
 
 
