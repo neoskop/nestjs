@@ -3,6 +3,8 @@ import { DynamicModule, Module, Provider, Logger } from '@nestjs/common';
 import { ModuleMetadata, OnModuleInit, Type } from '@nestjs/common/interfaces';
 import { AspectExplorerService } from './aspect-explorer.service';
 import { AsyncOptions, createAsyncProviders } from '../utils/providers';
+import { ExplorerService } from '../explorer';
+import { Aspect } from './aspect.decorator';
 
 
 export interface PhantomModuleOptions {
@@ -12,8 +14,7 @@ export const PHANTOM_OPTIONS = 'PHANTOM:options';
 
 @Module({
     providers: [
-        AopManager,
-        AspectExplorerService
+        AopManager
     ],
     exports: [
         AopManager
@@ -22,7 +23,7 @@ export const PHANTOM_OPTIONS = 'PHANTOM:options';
 export class PhantomModule implements OnModuleInit {
     protected readonly log = new Logger('AspectsResolver');
 
-    constructor(protected readonly aspectExplorer : AspectExplorerService,
+    constructor(protected readonly explorerService : ExplorerService,
                 protected readonly aopManager : AopManager) {}
 
     static forRoot(options : PhantomModuleOptions) : DynamicModule {
@@ -45,7 +46,7 @@ export class PhantomModule implements OnModuleInit {
     }
 
     onModuleInit() {
-        const aspects = this.aspectExplorer.explore();
+        const aspects = this.explorerService.explore<{}>(Aspect);
 
         for(const aspect of aspects) {
             this.log.log(`registered ${aspect.constructor.name}`);
