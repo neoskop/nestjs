@@ -2,7 +2,7 @@ import { AopManager } from '@neoskop/phantom';
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { OnModuleInit } from '@nestjs/common/interfaces';
 
-import { ExplorerService } from '../explorer';
+import { ExplorerService, ExplorerModule } from '../explorer';
 import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 import { Aspect } from './aspect.decorator';
 
@@ -13,6 +13,9 @@ export interface PhantomModuleOptions {
 export const PHANTOM_OPTIONS = 'PHANTOM:options';
 
 @Module({
+    imports: [
+        ExplorerModule
+    ],
     providers: [
         AopManager
     ],
