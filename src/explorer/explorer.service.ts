@@ -3,16 +3,16 @@ import { ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 
-import { ExplorableClassDecorator } from './decorator.factory';
+import { ExplorableClassDecoratorFactory } from './decorator.factory';
 
 @Injectable()
 export class ExplorerService {
 
     constructor(protected readonly modulesContainer: ModulesContainer) {}
 
-    explore<C, T extends string = string>(decorator: ExplorableClassDecorator<T>): C[];
+    explore<C, T extends string = string>(decorator: ExplorableClassDecoratorFactory<T>): C[];
     explore<C, T extends string = string>(key: T): C[];
-    explore<C, T extends string = string>(decoratorOrKey: ExplorableClassDecorator<T> | T): C[] {
+    explore<C, T extends string = string>(decoratorOrKey: ExplorableClassDecoratorFactory<T> | T): C[] {
         const modules = this.getModules();
 
         const aspects = this.map(modules, (instance, module) => this.filterAspects('key' in decoratorOrKey ? decoratorOrKey.key : decoratorOrKey, instance, module));
