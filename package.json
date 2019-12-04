@@ -1,6 +1,6 @@
 {
   "name": "@neoskop/nestjs",
-  "version": "0.2.0-rc.11",
+  "version": "0.2.0-rc.12",
   "description": "Collection of useful NestJS Modules",
   "main": "index.js",
   "repository": "https://github.com/neoskop/nestjs",
