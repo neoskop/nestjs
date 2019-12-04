@@ -1,6 +1,7 @@
 export * from './adamant';
 export * from './angular';
 export * from './cloudinary';
+export * from './explorer';
 export * from './hrbac';
 export * from './json-schema';
 export * from './phantom';
