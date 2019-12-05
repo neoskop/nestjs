@@ -46,11 +46,6 @@ export const HRBAC_OPTIONS = 'HRBAC:options';
         StaticPermissionManager,
         { provide: RoleManager, useFactory: roleManagerFactory, inject: [StaticRoleManager, HRBAC_OPTIONS] },
         { provide: PermissionManager, useFactory: permissionManagerFactory, inject: [StaticPermissionManager, HRBAC_OPTIONS] },
-
-        StaticRoleManager,
-        StaticPermissionManager,
-        { provide: RoleManager, useFactory: roleManagerFactory, inject: [StaticRoleManager, HRBAC_OPTIONS] },
-        { provide: PermissionManager, useFactory: permissionManagerFactory, inject: [StaticPermissionManager, HRBAC_OPTIONS] },
         {
             provide: HRBAC, useFactory(roleManager: RoleManager, permissionManager: PermissionManager) {
                 return new HRBAC(roleManager, permissionManager);
