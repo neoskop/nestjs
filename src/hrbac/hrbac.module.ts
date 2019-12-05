@@ -47,7 +47,9 @@ export const HRBAC_OPTIONS = 'HRBAC:options';
         }, inject: [ RoleManager, PermissionManager ]}
     ],
     exports: [
-        HRBAC
+        HRBAC,
+        RoleManager,
+        PermissionManager
     ]
 })
 export class HrbacModule {
@@ -61,8 +63,6 @@ export class HrbacModule {
                 { provide: RoleManager, useFactory: roleManagerFactory, inject: [ StaticRoleManager, HRBAC_OPTIONS ] },
                 { provide: PermissionManager, useFactory: permissionManagerFactory, inject: [ StaticPermissionManager, HRBAC_OPTIONS ] }
             ], exports: [
-                RoleManager,
-                PermissionManager,
                 HRBAC_OPTIONS
             ]
         }
@@ -79,8 +79,6 @@ export class HrbacModule {
                 { provide: PermissionManager, useFactory: permissionManagerFactory, inject: [ StaticPermissionManager, HRBAC_OPTIONS ] },
                 ...createAsyncProviders(options, HRBAC_OPTIONS)
             ], exports: [
-                RoleManager,
-                PermissionManager,
                 HRBAC_OPTIONS
             ]
         }
