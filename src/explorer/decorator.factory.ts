@@ -5,5 +5,5 @@ export type ExplorableClassDecoratorType<T> = T extends ExplorableClassDecorator
 export type ExplorableClassDecoratorClass<T> = T extends ExplorableClassDecoratorFactory<infer C, any> ? C : never; 
 
 export function createExplorableDecorator<C, P extends {}|null = null>(key: string) : ExplorableClassDecoratorFactory<C, P> {
-    return Object.assign((arg: P) => SetMetadata(key, arg), { key }) as ExplorableClassDecoratorFactory<C, P>;
+    return Object.assign((arg?: P) => SetMetadata(key, arg || {}), { key }) as ExplorableClassDecoratorFactory<C, P>;
 }
