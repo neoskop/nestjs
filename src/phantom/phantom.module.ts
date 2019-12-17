@@ -49,7 +49,7 @@ export class PhantomModule implements OnModuleInit {
     }
 
     onModuleInit() {
-        const aspects = this.explorerService.explore<{}>(Aspect);
+        const aspects = this.explorerService.explore(Aspect);
 
         for(const aspect of aspects) {
             this.log.log(`registered ${aspect.constructor.name}`);

@@ -1,11 +1,9 @@
 import { SetMetadata } from '@nestjs/common';
 
+export type ExplorableClassDecoratorFactory<C, P> = Function & { _c: C, key: string } & (P extends {} ? { (arg: P): ClassDecorator } : { (): ClassDecorator })
+export type ExplorableClassDecoratorType<T> = T extends ExplorableClassDecoratorFactory<any, infer I> ? I : never; 
+export type ExplorableClassDecoratorClass<T> = T extends ExplorableClassDecoratorFactory<infer C, any> ? C : never; 
 
-export interface ExplorableClassDecoratorFactory<T extends string> {
-    key: string;
-    (): ClassDecorator;
-}
-
-export function createExplorableDecorator<T extends string>(key: T) : ExplorableClassDecoratorFactory<T> {
-    return Object.assign(() => SetMetadata(key, true), { key });
+export function createExplorableDecorator<C, P extends {}|null = null>(key: string) : ExplorableClassDecoratorFactory<C, P> {
+    return Object.assign((arg: P) => SetMetadata(key, arg), { key }) as ExplorableClassDecoratorFactory<C, P>;
 }
