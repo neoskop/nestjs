@@ -32,12 +32,14 @@
     "@types/http-proxy-middleware": "0.19.3",
     "@types/json-schema": "7.0.3",
     "@types/node": "12.7.5",
+    "@types/oauth2-server": "3.0.12",
     "@types/pouchdb": "6.4.0",
     "@types/simple-oauth2": "2.2.1",
     "@types/winston": "2.4.4",
     "ajv": "6.10.2",
     "cookie-parser": "^1.4.4",
     "http-proxy-middleware": "0.20.0",
+    "oauth2-server": "3.0.1",
     "reflect-metadata": "0.1.13",
     "rxjs": "6.5.3",
     "simple-oauth2": "2.4.0",
@@ -62,10 +64,22 @@
     "ajv": ">=6.10.0",
     "cookie-parser": ">=1.4.4",
     "http-proxy-middleware": ">=0.19.1",
+    "oauth2-server": ">=3.0.1",
     "reflect-metadata": ">=0.1.12",
     "rxjs": ">=6.0.0",
     "simple-oauth2": ">=2.2.1",
     "winston": ">=3.2.1",
     "zone.js": ">=0.10.2"
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 4,
+    "arrowParens": "avoid",
+    "bracketSpacing": true,
+    "endOfLine": "lf",
+    "htmlWhitespaceSensitivity": "css",
+    "printWidth": 140,
+    "quoteProps": "as-needed",
+    "singleQuote": true
   }
 }
