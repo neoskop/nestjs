@@ -5,7 +5,7 @@ import { Type } from '@angular/core';
 import { APP_BASE_HREF } from '@angular/common';
 import { renderModule } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
-import { provideModuleMap } from '@nguniversal/module-map-ngfactory-loader';
+// import { provideModuleMap } from '@nguniversal/module-map-ngfactory-loader';
 import { ModuleMap } from '@nguniversal/module-map-ngfactory-loader/src/module-map';
 import express from 'express';
 import fs from 'fs';
@@ -58,7 +58,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                     document: this._template!,
                     url: `${request.protocol}://${request.get('host')}${request.url}`,
                     extraProviders: [
-                        provideModuleMap(this._bundle!.LAZY_MODULE_MAP),
+                        // provideModuleMap(this._bundle!.LAZY_MODULE_MAP),
                         { provide: 'REQUEST', useValue: request },
                         { provide: 'RESPONSE', useValue: response },
                         { provide: APP_BASE_HREF, useValue: request.baseUrl },
