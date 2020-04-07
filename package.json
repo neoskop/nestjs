@@ -15,9 +15,10 @@
     "publish-latest": "npm run publish-latest-only && npm dist-tag add @neoskop/nestjs@`jq '.version' package.json -r` next"
   },
   "devDependencies": {
-    "@angular/core": "8.2.6",
-    "@angular/platform-server": "8.2.6",
-    "@angular/router": "8.2.6",
+    "@angular/common": "9.1.0",
+    "@angular/core": "9.1.0",
+    "@angular/platform-server": "9.1.0",
+    "@angular/router": "9.1.0",
     "@neoskop/adamant": "0.3.0-rc.6",
     "@neoskop/annotation-factory": "1.0.1",
     "@neoskop/hrbac": "1.0.1",
@@ -51,8 +52,9 @@
     "tslib": "1.10.0"
   },
   "peerDependencies": {
-    "@angular/core": "*",
-    "@angular/platform-server": ">=8.2.6",
+    "@angular/common": ">=9.1.0",
+    "@angular/core": ">=9.1.0",
+    "@angular/platform-server": ">=9.1.0",
     "@neoskop/adamant": ">=0.3.0-rc.5",
     "@neoskop/hrbac": ">=1.0.1",
     "@neoskop/phantom": ">=1.3.0",

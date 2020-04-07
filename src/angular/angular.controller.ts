@@ -1,8 +1,9 @@
 import 'zone.js';
 import 'zone.js/dist/zone-node';
 
-import { NgModuleFactory } from '@angular/core';
-import { renderModuleFactory } from '@angular/platform-server';
+import { Type } from '@angular/core';
+import { APP_BASE_HREF } from '@angular/common';
+import { renderModule } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
 import { provideModuleMap } from '@nguniversal/module-map-ngfactory-loader';
 import { ModuleMap } from '@nguniversal/module-map-ngfactory-loader/src/module-map';
@@ -53,13 +54,14 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
             properties: { request, response }
         }).run(async () => {
             try {
-                const html = await renderModuleFactory(this._bundle!.ModuleNgFactory, {
+                const html = await this._bundle!.renderModule(this._bundle!.Module, {
                     document: this._template!,
                     url: `${request.protocol}://${request.get('host')}${request.url}`,
                     extraProviders: [
                         provideModuleMap(this._bundle!.LAZY_MODULE_MAP),
                         { provide: 'REQUEST', useValue: request },
                         { provide: 'RESPONSE', useValue: response },
+                        { provide: APP_BASE_HREF, useValue: request.baseUrl },
                         ...(this.options.providers || [])
                     ]
                 });
@@ -93,17 +95,18 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
 }
 
 
-function loadBundle(src: string): { ModuleNgFactory: NgModuleFactory<any>, LAZY_MODULE_MAP: ModuleMap } {
+function loadBundle(src: string): { Module: Type<any>, LAZY_MODULE_MAP: ModuleMap, renderModule: typeof renderModule } {
     const bundle = require(path.resolve(src));
 
-    const moduleFactoryKey = Object.keys(bundle).find(k => k.endsWith('NgFactory'));
+    const moduleKey = Object.keys(bundle).find(k => k.endsWith('Module'));
 
-    if (!moduleFactoryKey) {
-        throw new Error(`Cannot find module factory in "${src}"`);
+    if (!moduleKey) {
+        throw new Error(`Cannot find module in "${src}"`);
     }
 
     return {
-        ModuleNgFactory: bundle[moduleFactoryKey],
+        Module: bundle[moduleKey],
+        renderModule: bundle.renderModule,
         LAZY_MODULE_MAP: bundle.LAZY_MODULE_MAP
     };
 }
