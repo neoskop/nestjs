@@ -5,8 +5,6 @@ import { Type } from '@angular/core';
 import { APP_BASE_HREF } from '@angular/common';
 import { renderModule } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
-// import { provideModuleMap } from '@nguniversal/module-map-ngfactory-loader';
-import { ModuleMap } from '@nguniversal/module-map-ngfactory-loader/src/module-map';
 import express from 'express';
 import fs from 'fs';
 import proxy from 'http-proxy-middleware';
@@ -58,7 +56,6 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                     document: this._template!,
                     url: `${request.protocol}://${request.get('host')}${request.url}`,
                     extraProviders: [
-                        // provideModuleMap(this._bundle!.LAZY_MODULE_MAP),
                         { provide: 'REQUEST', useValue: request },
                         { provide: 'RESPONSE', useValue: response },
                         { provide: APP_BASE_HREF, useValue: request.baseUrl },
@@ -95,7 +92,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
 }
 
 
-function loadBundle(src: string): { Module: Type<any>, LAZY_MODULE_MAP: ModuleMap, renderModule: typeof renderModule } {
+function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } {
     const bundle = require(path.resolve(src));
 
     const moduleKey = Object.keys(bundle).find(k => k.endsWith('Module'));
@@ -106,7 +103,6 @@ function loadBundle(src: string): { Module: Type<any>, LAZY_MODULE_MAP: ModuleMa
 
     return {
         Module: bundle[moduleKey],
-        renderModule: bundle.renderModule,
-        LAZY_MODULE_MAP: bundle.LAZY_MODULE_MAP
+        renderModule: bundle.renderModule
     };
 }
