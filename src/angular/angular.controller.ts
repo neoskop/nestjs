@@ -61,8 +61,8 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                 try {
 
                     const html = await this._bundle!.renderModule(this._bundle!.Module, {
-                        // document: this._template!,
-                        // url: `${request.protocol}://${request.get('host')}${request.url}`,
+                        document: this._template!,
+                        url: `${request.protocol}://${request.get('host')}${request.url}`,
                         extraProviders: [
                             ...(this.options.providers || []),
                             { provide: 'REQUEST', useValue: request },
