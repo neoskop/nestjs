@@ -9,8 +9,14 @@ import express from 'express';
 import fs from 'fs';
 import proxy from 'http-proxy-middleware';
 import path from 'path';
+import importFresh from 'import-fresh';
 
 import { IAngularAppOptions } from './tokens';
+
+export interface IHooks {
+    pre?(request: express.Request, response: express.Response): void | Promise<void>;
+    post?(body: string, request: express.Request, response: express.Response): void | string | Promise<void | string>;
+}
 
 @Controller()
 export class AngularController<T extends IAngularAppOptions = IAngularAppOptions> {
@@ -18,7 +24,6 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
         this.mode === 'ssr' && this.options.www ? express.static(path.resolve(this.options.www), { index: false }) : null;
     protected readonly _template =
         this.mode === 'ssr' && this.options.www ? fs.readFileSync(path.join(this.options.www, 'index.html'), 'utf-8') : null;
-    protected readonly _bundle = this.mode === 'ssr' && this.options.main ? loadBundle(this.options.main) : null;
     protected readonly _proxy =
         this.mode === 'proxy' && this.options.target ? proxy({ target: this.options.target, changeOrigin: true, ws: true }) : null;
 
@@ -27,13 +32,14 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     constructor(
         protected readonly mode: 'ssr' | 'proxy',
         protected readonly options: T,
-        protected readonly nonceFactory?: (request: express.Request, response: express.Response) => string
+        protected readonly nonceFactory?: (request: express.Request, response: express.Response) => string,
+        protected readonly hooks?: IHooks
     ) {
         this.init();
     }
 
     protected init() {
-        if ((this._static && this._template && this._bundle) || this._proxy) {
+        if ((this._static && this._template) || this._proxy) {
             this.router.get('*.*', this.getStaticAssets.bind(this));
             this.router.get('*', this.getAngular.bind(this));
         }
@@ -59,11 +65,13 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
             })
             .run(async () => {
                 try {
-                    if(!this._bundle) {
-                        throw new Error('Bundle missing');
+                    if(!this.options.main) {
+                        throw new Error('main missing');
                     }
-                    
-                    const html = await this._bundle!.renderModule('Module' in this._bundle ? this._bundle.Module : await this._bundle.ModuleFactory(), {
+                    await this.hooks?.pre?.(request, response);
+                    const bundle = loadBundle(this.options.main);
+
+                    let html = await bundle.renderModule('Module' in bundle ? bundle.Module : await bundle.ModuleFactory(), {
                         document: this._template!,
                         url: `${request.protocol}://${request.get('host')}${request.url}`,
                         extraProviders: [
@@ -82,6 +90,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                     });
 
                     response.header('Content-Type', 'text/html');
+                    html = (await this.hooks?.post?.(html, request, response)) || html;
                     if (this.nonceFactory) {
                         response.end(
                             html.replace(/<script(?: type="text\/javascript")?/g, `$& nonce="${this.nonceFactory(request, response)}"`)
@@ -112,7 +121,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
 }
 
 function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof renderModule } {
-    const bundle = require(path.resolve(src));
+    const bundle = importFresh<any>(path.resolve(src));
 
     if('ModuleFactory' in bundle) {
         return {

@@ -1,5 +1,6 @@
 import { StaticProvider } from '@angular/core';
 import { Request, Response } from 'express';
+import { IHooks } from './angular.controller';
 
 export const ANGULAR_OPTIONS = 'ANGULAR_OPTIONS';
 export const ANGULAR_LOCALE_OPTIONS = 'ANGULAR_LOCALE_OPTIONS';
@@ -15,6 +16,7 @@ export interface IAngularAppOptions {
 export interface AngularBaseOptions {
     mode: 'ssr' | 'proxy';
     nonceFactory?(request : Request, response : Response) : string;
+    hooks?: IHooks
 }
 
 export interface AngularOptions extends IAngularAppOptions, AngularBaseOptions {
