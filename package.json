@@ -43,12 +43,13 @@
     "reflect-metadata": "0.1.13",
     "rxjs": "6.5.3",
     "simple-oauth2": "2.4.0",
-    "typescript": "3.6.3",
+    "typescript": "^4.2.4",
     "winston": "3.2.1",
     "zone.js": "0.10.2"
   },
   "dependencies": {
-    "tslib": "1.10.0"
+    "import-fresh": "^3.3.0",
+    "tslib": "^2.2.0"
   },
   "peerDependencies": {
     "@angular/common": "*",
