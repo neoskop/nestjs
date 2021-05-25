@@ -7,7 +7,7 @@
   "author": "Mark Wecke <wecke@neoskop.de>",
   "license": "MIT",
   "scripts": {
-    "prebuild": "rm -r dist",
+    "prebuild": "rm -rf dist",
     "build": "tsc",
     "postbuild": "jq 'del(.scripts) | del(.devDependencies)' package.json > dist/package.json && cp README.md dist",
     "publish-next": "npm run build && npm publish dist --tag next",

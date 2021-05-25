@@ -59,8 +59,11 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
             })
             .run(async () => {
                 try {
-
-                    const html = await this._bundle!.renderModule(this._bundle!.Module, {
+                    if(!this._bundle) {
+                        throw new Error('Bundle missing');
+                    }
+                    
+                    const html = await this._bundle!.renderModule('Module' in this._bundle ? this._bundle.Module : await this._bundle.ModuleFactory(), {
                         document: this._template!,
                         url: `${request.protocol}://${request.get('host')}${request.url}`,
                         extraProviders: [
@@ -108,8 +111,15 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     }
 }
 
-function loadBundle(src: string): { Module: Type<any>; renderModule: typeof renderModule } {
+function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof renderModule } {
     const bundle = require(path.resolve(src));
+
+    if('ModuleFactory' in bundle) {
+        return {
+            ModuleFactory: bundle.ModuleFactory,
+            renderModule: bundle.renderModule
+        }
+    }
 
     const moduleKey = Object.keys(bundle).find(k => k.endsWith('Module'));
 
