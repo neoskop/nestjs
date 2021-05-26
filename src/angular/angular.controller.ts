@@ -16,6 +16,7 @@ import { IAngularAppOptions } from './tokens';
 export interface IHooks {
     pre?(request: express.Request, response: express.Response): void | Promise<void>;
     post?(body: string, request: express.Request, response: express.Response): void | string | Promise<void | string>;
+    zoneProperties?(request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>
 }
 
 @Controller()
@@ -57,11 +58,16 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
         }
     }
 
-    protected _ssr(request: express.Request, response: express.Response, next: express.NextFunction) {
+    protected async _ssr(request: express.Request, response: express.Response, next: express.NextFunction) {
+        
         Zone.current
             .fork({
                 name: 'angular-ssr',
-                properties: { request, response }
+                properties: { 
+                    request, 
+                    response,
+                    ...((await this.hooks?.zoneProperties?.(request, response)) || {})
+                }
             })
             .run(async () => {
                 try {
@@ -108,7 +114,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
         if (this.checkSkip(req)) {
             next();
         } else if (this.mode === 'ssr') {
-            this._ssr(req, res, next);
+            this._ssr(req, res, next).catch(next);
         } else {
             this._proxy!(req, res, next);
         }
