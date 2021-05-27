@@ -7,16 +7,18 @@ import { renderModule, INITIAL_CONFIG } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
 import express from 'express';
 import fs from 'fs';
-import proxy from 'http-proxy-middleware';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
 import importFresh from 'import-fresh';
 
 import { IAngularAppOptions } from './tokens';
+import { IncomingMessage } from 'http';
 
 export interface IHooks {
     pre?(request: express.Request, response: express.Response): void | Promise<void>;
     post?(body: string, request: express.Request, response: express.Response): void | string | Promise<void | string>;
-    zoneProperties?(request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>
+    zoneProperties?(request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>;
+    onProxyRes?(proxyRes: IncomingMessage, request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>;
 }
 
 @Controller()
@@ -26,7 +28,12 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     protected readonly _template =
         this.mode === 'ssr' && this.options.www ? fs.readFileSync(path.join(this.options.www, 'index.html'), 'utf-8') : null;
     protected readonly _proxy =
-        this.mode === 'proxy' && this.options.target ? proxy({ target: this.options.target, changeOrigin: true, ws: true }) : null;
+        this.mode === 'proxy' && this.options.target ? createProxyMiddleware({ 
+            target: this.options.target, 
+            changeOrigin: true, 
+            ws: true,
+            onProxyRes: this.hooks?.onProxyRes
+        }) : null;
 
     protected readonly router = express.Router();
 
