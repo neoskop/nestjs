@@ -46,7 +46,7 @@ export class AclGuard implements CanActivate {
         const privilege = this.reflector.get<string | undefined>('ACL:privilege', context.getHandler());
 
 
-        if (resource && !await this.hrbac.isAllowed(new ApiRole(role, this.hrbacModuleOptions.resolveUserForRequest(request)), new ApiResource(resource, GqlExecutionContext.create(context), request), privilege)) {
+        if (resource && !await this.hrbac.isAllowed(new ApiRole(role, this.hrbacModuleOptions.resolveUserForRequest(request)), new ApiResource(resource, context, request), privilege)) {
             if (role === 'guest') {
                 throw new UnauthorizedException();
             }
