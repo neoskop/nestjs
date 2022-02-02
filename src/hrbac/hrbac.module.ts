@@ -43,6 +43,7 @@ export const HRBAC_OPTIONS = 'HRBAC:options';
 @Module({
     providers: [
         StaticRoleManager,
+        StaticResourceManager,
         StaticPermissionManager,
         { provide: RoleManager, useFactory: roleManagerFactory, inject: [StaticRoleManager, HRBAC_OPTIONS] },
         { provide: ResourceManager, useFactory: resourceManagerFactory, inject: [StaticResourceManager, HRBAC_OPTIONS] },
