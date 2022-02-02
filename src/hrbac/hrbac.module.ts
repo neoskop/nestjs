@@ -1,16 +1,13 @@
 import {
-    HRBAC,
-    PermissionManager,
-    PermissionTransfer,
-    RoleManager,
-    StaticPermissionManager,
-    StaticRoleManager,
+    HRBAC, PermissionManager,
+    PermissionTransfer, ResourceManager, RoleManager,
+    StaticPermissionManager, StaticResourceManager, StaticRoleManager
 } from '@neoskop/hrbac';
-import { IRoles } from '@neoskop/hrbac/ng';
+import { IResources, IRoles } from '@neoskop/hrbac/ng';
 import { DynamicModule, Module } from '@nestjs/common';
 import { Request } from 'express';
-
 import { AsyncOptions, createAsyncProviders } from '../utils/providers';
+
 
 
 export interface HRBACModuleOptions {
@@ -19,17 +16,20 @@ export interface HRBACModuleOptions {
     resolveUserForRequest(request: Request): any;
     defaultRole: string;
     roles: IRoles;
+    resources: IResources;
     permissions: PermissionTransfer;
-}
-
-function isInjectionToken(token: any): token is string | symbol {
-    return typeof token === 'string' || typeof token === 'symbol';
 }
 
 function roleManagerFactory(roleManager: StaticRoleManager, options: HRBACModuleOptions) {
     roleManager.import(options.roles);
 
     return roleManager;
+}
+
+function resourceManagerFactory(resourceManager: StaticResourceManager, options: HRBACModuleOptions) {
+    resourceManager.import(options.resources);
+
+    return resourceManager;
 }
 
 function permissionManagerFactory(permissionManager: StaticPermissionManager, options: HRBACModuleOptions) {
@@ -45,11 +45,12 @@ export const HRBAC_OPTIONS = 'HRBAC:options';
         StaticRoleManager,
         StaticPermissionManager,
         { provide: RoleManager, useFactory: roleManagerFactory, inject: [StaticRoleManager, HRBAC_OPTIONS] },
+        { provide: ResourceManager, useFactory: resourceManagerFactory, inject: [StaticResourceManager, HRBAC_OPTIONS] },
         { provide: PermissionManager, useFactory: permissionManagerFactory, inject: [StaticPermissionManager, HRBAC_OPTIONS] },
         {
-            provide: HRBAC, useFactory(roleManager: RoleManager, permissionManager: PermissionManager) {
-                return new HRBAC(roleManager, permissionManager);
-            }, inject: [RoleManager, PermissionManager]
+            provide: HRBAC, useFactory(roleManager: RoleManager, resourceManager: ResourceManager, permissionManager: PermissionManager) {
+                return new HRBAC(roleManager, resourceManager, permissionManager);
+            }, inject: [RoleManager, ResourceManager, PermissionManager]
         }
     ],
     exports: [

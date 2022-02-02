@@ -98,12 +98,10 @@
   dependencies:
     reflect-metadata "0.1.12"
 
-"@neoskop/hrbac@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@neoskop/hrbac/-/hrbac-1.0.1.tgz#778aed15011648e55e461f0aa12a38f980397d5e"
-  integrity sha512-ao0OC5AtOO5x/hFrLKIXIbG6dREoJfsJTtYYV9yyzyCrv3eCsE0kCSbPd3MdwJvkNrU82W4NmFez9oaG90wZ7Q==
-  dependencies:
-    tslib "^1.9.0"
+"@neoskop/hrbac@2.0.0-rc.1":
+  version "2.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@neoskop/hrbac/-/hrbac-2.0.0-rc.1.tgz#d0481015c4888506619b1da89d52d98963150b8b"
+  integrity sha512-561VdWB1EXn/cd4FXZBtiXO/lyKZhW3Am069vJKXb2z9VRsUTqRJXjOFWXNvcRtXTsyrg93SxJQg0LVbS7Bf5w==
 
 "@neoskop/phantom@1.3.0":
   version "1.3.0"

@@ -1,4 +1,4 @@
-import { HRBAC, StaticPermissionManager, StaticRoleManager } from '@neoskop/hrbac';
+import { HRBAC, StaticPermissionManager, StaticResourceManager, StaticRoleManager } from '@neoskop/hrbac';
 import {
     CanActivate,
     ExecutionContext,
@@ -6,15 +6,15 @@ import {
     Injectable,
     SetMetadata,
     UnauthorizedException,
-    UseGuards,
+    UseGuards
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
-
 import { HRBACModuleOptions, HRBAC_OPTIONS } from './hrbac.module';
 import { ApiResource } from './resource';
 import { ApiRole } from './role';
+
 
 
 
@@ -31,7 +31,7 @@ export function ACL(resource: string, privilege?: string | null): MethodDecorato
 @Injectable()
 export class AclGuard implements CanActivate {
 
-    constructor(protected readonly hrbac: HRBAC<StaticRoleManager, StaticPermissionManager>,
+    constructor(protected readonly hrbac: HRBAC<StaticRoleManager, StaticResourceManager, StaticPermissionManager>,
         @Inject(HRBAC_OPTIONS) protected readonly hrbacModuleOptions: HRBACModuleOptions,
         protected readonly reflector: Reflector) { }
 
