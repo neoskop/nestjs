@@ -1,4 +1,4 @@
-import { HRBAC, StaticPermissionManager, StaticResourceManager, StaticRoleManager } from '@neoskop/hrbac';
+import { HRBAC, Resource, StaticPermissionManager, StaticResourceManager, StaticRoleManager } from '@neoskop/hrbac';
 import {
     CanActivate,
     ExecutionContext,
@@ -19,7 +19,7 @@ import { ApiRole } from './role';
 
 
 
-export function ACL(resource: string, privilege?: string | null): MethodDecorator {
+export function ACL(resource: Resource | string, privilege?: string | null): MethodDecorator {
     return (target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) => {
         SetMetadata('ACL:resource', resource)(target, propertyKey, descriptor);
         SetMetadata('ACL:privilege', privilege === undefined ? propertyKey : privilege)(target, propertyKey, descriptor);
@@ -42,7 +42,7 @@ export class AclGuard implements CanActivate {
             this.hrbac.getRoleManager().setParents(role, this.hrbacModuleOptions.resolveUserRolesForRequest(request));
         }
 
-        const resource = this.reflector.get<string | undefined>('ACL:resource', context.getHandler());
+        const resource = this.reflector.get<Resource | string | undefined>('ACL:resource', context.getHandler());
         const privilege = this.reflector.get<string | undefined>('ACL:privilege', context.getHandler());
 
 
