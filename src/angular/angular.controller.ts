@@ -19,6 +19,7 @@ export interface IHooks {
     post?(body: string, request: express.Request, response: express.Response): void | string | Promise<void | string>;
     zoneProperties?(request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>;
     onProxyRes?(proxyRes: IncomingMessage, request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>;
+    proxyPathRewrite?: Record<string, string> | ((path: string, req: express.Request) => string) | ((path: string, req: express.Request) => Promise<string>);
 }
 
 @Controller()
@@ -32,7 +33,8 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
             target: this.options.target, 
             changeOrigin: true, 
             ws: true,
-            onProxyRes: this.hooks?.onProxyRes
+            onProxyRes: this.hooks?.onProxyRes,
+            pathRewrite: this.hooks?.proxyPathRewrite
         }) : null;
 
     protected readonly router = express.Router();
