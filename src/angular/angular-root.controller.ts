@@ -12,12 +12,12 @@ export class AngularRootController extends AngularController<AngularOptions> {
 
 
     constructor(@Inject(ANGULAR_OPTIONS) options : AngularOptions) {
-        super(options.mode, options, options.nonceFactory);
+        super(options.mode, options, options.nonceFactory, options.hooks);
     }
 
     protected init() {
         for(const [ path, options ] of this.options.apps) {
-            const controller = new AngularController(this.options.mode, options, this.options.nonceFactory);
+            const controller = new AngularController(this.options.mode, options, this.options.nonceFactory, this.options.hooks);
 
             this.router.use(path, controller.handle.bind(controller));
         }

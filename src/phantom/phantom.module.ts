@@ -1,30 +1,23 @@
 import { AopManager } from '@neoskop/phantom';
-import { DynamicModule, Module, Provider, Logger } from '@nestjs/common';
-import { ModuleMetadata, OnModuleInit, Type } from '@nestjs/common/interfaces';
-import { AspectExplorerService } from './aspect-explorer.service';
+import { DynamicModule, Logger, Module } from '@nestjs/common';
+import { OnModuleInit } from '@nestjs/common/interfaces';
+
+import { ExplorerService, ExplorerModule } from '../explorer';
+import { AsyncOptions, createAsyncProviders } from '../utils/providers';
+import { Aspect } from './aspect.decorator';
 
 
 export interface PhantomModuleOptions {
 }
 
-export interface PhantomAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-    useExisting?: Type<PhantomOptionsFactory>;
-    useClass?: Type<PhantomOptionsFactory>;
-    useFactory?: (...args : any[]) => Promise<PhantomModuleOptions> | PhantomModuleOptions,
-    inject?: any[];
-}
-
-
-export interface PhantomOptionsFactory {
-    createPhantomOptions() : Promise<PhantomModuleOptions> | PhantomModuleOptions;
-}
-
 export const PHANTOM_OPTIONS = 'PHANTOM:options';
 
 @Module({
+    imports: [
+        ExplorerModule
+    ],
     providers: [
-        AopManager,
-        AspectExplorerService
+        AopManager
     ],
     exports: [
         AopManager
@@ -33,7 +26,7 @@ export const PHANTOM_OPTIONS = 'PHANTOM:options';
 export class PhantomModule implements OnModuleInit {
     protected readonly log = new Logger('AspectsResolver');
 
-    constructor(protected readonly aspectExplorer : AspectExplorerService,
+    constructor(protected readonly explorerService : ExplorerService,
                 protected readonly aopManager : AopManager) {}
 
     static forRoot(options : PhantomModuleOptions) : DynamicModule {
@@ -45,48 +38,18 @@ export class PhantomModule implements OnModuleInit {
         }
     }
 
-    static forRootAsync(options: PhantomAsyncOptions) : DynamicModule {
+    static forRootAsync(options: AsyncOptions<PhantomModuleOptions>) : DynamicModule {
         return {
             module: PhantomModule,
             imports: options.imports,
             providers: [
-                ...this.createAsyncProviders(options)
+                ...createAsyncProviders(options, PHANTOM_OPTIONS)
             ]
         }
     }
 
-    protected static createAsyncProviders(options : PhantomAsyncOptions) : Provider[] {
-        if(options.useExisting || options.useFactory) {
-            return [ this.createAsyncOptionsProvider(options) ];
-        }
-
-        return [
-            this.createAsyncOptionsProvider(options),
-            {
-                provide: options.useClass!,
-                useClass: options.useClass!
-            }
-        ]
-    }
-
-    protected static createAsyncOptionsProvider(options : PhantomAsyncOptions) : Provider {
-        if(options.useFactory) {
-            return {
-                provide: PHANTOM_OPTIONS,
-                useFactory: options.useFactory,
-                inject: options.inject
-            }
-        }
-
-        return {
-            provide: PHANTOM_OPTIONS,
-            useFactory: async (optionsFactory : PhantomOptionsFactory) => await optionsFactory.createPhantomOptions(),
-            inject: [ options.useExisting || options.useClass ]
-        }
-    }
-
     onModuleInit() {
-        const aspects = this.aspectExplorer.explore();
+        const aspects = this.explorerService.explore(Aspect);
 
         for(const aspect of aspects) {
             this.log.log(`registered ${aspect.constructor.name}`);

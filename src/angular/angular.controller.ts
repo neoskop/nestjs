@@ -1,36 +1,58 @@
 import 'zone.js';
 import 'zone.js/dist/zone-node';
 
-import { NgModuleFactory } from '@angular/core';
-import { renderModuleFactory } from '@angular/platform-server';
+import { Type } from '@angular/core';
+import { APP_BASE_HREF } from '@angular/common';
+import { renderModule, INITIAL_CONFIG } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
-import { provideModuleMap } from '@nguniversal/module-map-ngfactory-loader';
-import { ModuleMap } from '@nguniversal/module-map-ngfactory-loader/src/module-map';
 import express from 'express';
 import fs from 'fs';
-import proxy from 'http-proxy-middleware';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
+import importFresh from 'import-fresh';
 
 import { IAngularAppOptions } from './tokens';
+import { IncomingMessage } from 'http';
+
+export interface IHooks {
+    pre?(request: express.Request, response: express.Response): void | Promise<void>;
+    post?(body: string, request: express.Request, response: express.Response): void | string | Promise<void | string>;
+    zoneProperties?(request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>;
+    onProxyRes?(proxyRes: IncomingMessage, request: express.Request, response: express.Response): void | Record<string, unknown> | Promise< | Record<string, unknown>>;
+    proxyPathRewrite?: Record<string, string> | ((path: string, req: express.Request) => string) | ((path: string, req: express.Request) => Promise<string>);
+}
 
 @Controller()
 export class AngularController<T extends IAngularAppOptions = IAngularAppOptions> {
-    protected readonly _static = this.mode === 'ssr' ? express.static(path.resolve(this.options.www), { index: false }) : null;
-    protected readonly _template = this.mode === 'ssr' ? fs.readFileSync(path.join(this.options.www, 'index.html'), 'utf-8') : null;
-    protected readonly _bundle = this.mode === 'ssr' ? loadBundle(this.options.main) : null;
-    protected readonly _proxy = this.mode === 'proxy' ? proxy({ target: this.options.target, changeOrigin: true, ws: true }) : null;
+    protected readonly _static =
+        this.mode === 'ssr' && this.options.www ? express.static(path.resolve(this.options.www), { index: false }) : null;
+    protected readonly _template =
+        this.mode === 'ssr' && this.options.www ? fs.readFileSync(path.join(this.options.www, 'index.html'), 'utf-8') : null;
+    protected readonly _proxy =
+        this.mode === 'proxy' && this.options.target ? createProxyMiddleware({ 
+            target: this.options.target, 
+            changeOrigin: true, 
+            ws: true,
+            onProxyRes: this.hooks?.onProxyRes,
+            pathRewrite: this.hooks?.proxyPathRewrite
+        }) : null;
 
     protected readonly router = express.Router();
 
-    constructor(protected readonly mode: 'ssr' | 'proxy',
+    constructor(
+        protected readonly mode: 'ssr' | 'proxy',
         protected readonly options: T,
-        protected readonly nonceFactory?: (request : express.Request, response : express.Response) => string) {
+        protected readonly nonceFactory?: (request: express.Request, response: express.Response) => string,
+        protected readonly hooks?: IHooks
+    ) {
         this.init();
     }
 
     protected init() {
-        this.router.get('*.*', this.getStaticAssets.bind(this));
-        this.router.get('*', this.getAngular.bind(this));
+        if ((this._static && this._template) || this._proxy) {
+            this.router.get('*.*', this.getStaticAssets.bind(this));
+            this.router.get('*', this.getAngular.bind(this));
+        }
     }
 
     protected checkSkip(req: express.Request) {
@@ -45,39 +67,63 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
         }
     }
 
-    protected _ssr(request: express.Request, response: express.Response, next: express.NextFunction) {
-        Zone.current.fork({
-            name: 'angular-ssr',
-            properties: { request, response }
-        }).run(async () => {
-            try {
-                const html = await renderModuleFactory(this._bundle!.ModuleNgFactory, {
-                    document: this._template!,
-                    url: `${request.protocol}://${request.get('host')}${request.url}`,
-                    extraProviders: [
-                        provideModuleMap(this._bundle!.LAZY_MODULE_MAP),
-                        { provide: 'REQUEST', useValue: request },
-                        { provide: 'RESPONSE', useValue: response }
-                    ]
-                });
-
-                response.header('Content-Type', 'text/html');
-                if(this.nonceFactory) {
-                    response.end(html.replace(/<script type="text\/javascript"/g, `$& nonce="${this.nonceFactory(request, response)}"`));
-                } else {
-                    response.end(html);
+    protected async _ssr(request: express.Request, response: express.Response, next: express.NextFunction) {
+        
+        Zone.current
+            .fork({
+                name: 'angular-ssr',
+                properties: { 
+                    request, 
+                    response,
+                    ...((await this.hooks?.zoneProperties?.(request, response)) || {})
                 }
-            } catch (err) {
-                next(err);
-            }
-        });
-    };
+            })
+            .run(async () => {
+                try {
+                    if(!this.options.main) {
+                        throw new Error('main missing');
+                    }
+                    await this.hooks?.pre?.(request, response);
+                    const bundle = loadBundle(this.options.main);
+
+                    let html = await bundle.renderModule('Module' in bundle ? bundle.Module : await bundle.ModuleFactory(), {
+                        document: this._template!,
+                        url: `${request.protocol}://${request.get('host')}${request.url}`,
+                        extraProviders: [
+                            ...(this.options.providers || []),
+                            { provide: 'REQUEST', useValue: request },
+                            { provide: 'RESPONSE', useValue: response },
+                            { provide: APP_BASE_HREF, useValue: request.baseUrl },
+                            {
+                                provide: INITIAL_CONFIG,
+                                useValue: {
+                                    doc: this._template!,
+                                    url: `${request.protocol}://${request.get('host')}${request.url}`
+                                }
+                            }
+                        ]
+                    });
+
+                    response.header('Content-Type', 'text/html');
+                    html = (await this.hooks?.post?.(html, request, response)) || html;
+                    if (this.nonceFactory) {
+                        response.end(
+                            html.replace(/<script(?: type="text\/javascript")?/g, `$& nonce="${this.nonceFactory(request, response)}"`)
+                        );
+                    } else {
+                        response.end(html);
+                    }
+                } catch (err) {
+                    next(err);
+                }
+            });
+    }
 
     getAngular(req: express.Request, res: express.Response, next: express.NextFunction) {
         if (this.checkSkip(req)) {
             next();
         } else if (this.mode === 'ssr') {
-            this._ssr(req, res, next);
+            this._ssr(req, res, next).catch(next);
         } else {
             this._proxy!(req, res, next);
         }
@@ -89,18 +135,24 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     }
 }
 
+function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof renderModule } {
+    const bundle = importFresh<any>(path.resolve(src));
 
-function loadBundle(src: string): { ModuleNgFactory: NgModuleFactory<any>, LAZY_MODULE_MAP: ModuleMap } {
-    const bundle = require(path.resolve(src));
+    if('ModuleFactory' in bundle) {
+        return {
+            ModuleFactory: bundle.ModuleFactory,
+            renderModule: bundle.renderModule
+        }
+    }
 
-    const moduleFactoryKey = Object.keys(bundle).find(k => k.endsWith('NgFactory'));
+    const moduleKey = Object.keys(bundle).find(k => k.endsWith('Module'));
 
-    if (!moduleFactoryKey) {
-        throw new Error(`Cannot find module factory in "${src}"`);
+    if (!moduleKey) {
+        throw new Error(`Cannot find module in "${src}"`);
     }
 
     return {
-        ModuleNgFactory: bundle[moduleFactoryKey],
-        LAZY_MODULE_MAP: bundle.LAZY_MODULE_MAP
+        Module: bundle[moduleKey],
+        renderModule: bundle.renderModule
     };
 }

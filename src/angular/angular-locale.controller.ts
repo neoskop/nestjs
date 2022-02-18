@@ -31,10 +31,10 @@ export class AngularLocaleController {
             }
             for(const locale in parseAcceptLanguageHeader(req.get('accept-language') || '')) {
                 if(this.options.locales.includes(locale)) {
-                    return res.redirect(`/${locale}`);
+                    return res.redirect(`/${locale}${req.path}`);
                 }
             }
-            res.redirect(`/${this.options.defaultLocale}`);
+            res.redirect(`/${this.options.defaultLocale}${req.path}`);
         })
     }
 

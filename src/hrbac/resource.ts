@@ -1,11 +1,15 @@
 import { Resource } from '@neoskop/hrbac';
-import { GraphQLExecutionContext } from '@nestjs/graphql';
+import { ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
-export class ApiResource extends Resource {
-    constructor(resourceId: string,
-        public readonly context: GraphQLExecutionContext,
+export class ApiResource<R extends Resource = Resource> extends Resource {
+    public readonly resource?: R;
+    constructor(resource: string | R,
+        public readonly context: ExecutionContext,
         public readonly request: Request) {
-        super(resourceId);
+        super(typeof resource === 'string' ? resource : resource.resourceId);
+        if(typeof resource !== 'string') {
+            this.resource = resource;
+        }
     }
 }

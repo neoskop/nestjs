@@ -1,20 +1,7 @@
-import { DynamicModule, Global, Module, Provider, Type } from '@nestjs/common';
-import { ModuleOptions, OAuthClient, create } from 'simple-oauth2';
-import { ModuleMetadata } from '@nestjs/common/interfaces';
-import { ICloudinaryConfig } from 'cloudinary';
-import cloudinary from 'cloudinary';
+import { DynamicModule, Global, Module, Type } from '@nestjs/common';
+import cloudinary, { ICloudinaryConfig } from 'cloudinary';
 
-
-export interface CloudinaryAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-    useExisting?: Type<CloudinaryOptionsFactory>;
-    useClass?: Type<CloudinaryOptionsFactory>;
-    useFactory?: (...args : any[]) => Promise<ICloudinaryConfig> | ICloudinaryConfig,
-    inject?: any[];
-}
-
-export interface CloudinaryOptionsFactory {
-    createCloudinaryOptions() : Promise<ICloudinaryConfig> | ICloudinaryConfig;
-}
+import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 
 export const CloudinaryOptions = 'CLOUDINARY_OPTIONS' as any as Type<ICloudinaryConfig>;
 export type CloudinaryOptions = ICloudinaryConfig;
@@ -36,7 +23,7 @@ export type CloudinaryClient = typeof cloudinary;
     exports: [ CloudinaryClient ]
 })
 export class CloudinaryModule {
-    static forRoot(options : ModuleOptions) : DynamicModule {
+    static forRoot(options : ICloudinaryConfig) : DynamicModule {
         return {
             module: CloudinaryModule,
             providers: [
@@ -48,43 +35,13 @@ export class CloudinaryModule {
         }
     }
 
-    static forRootAsync(options: CloudinaryAsyncOptions) : DynamicModule {
+    static forRootAsync(options: AsyncOptions<ICloudinaryConfig>) : DynamicModule {
         return {
             module: CloudinaryModule,
             imports: options.imports,
             providers: [
-                ...this.createAsyncProviders(options)
+                ...createAsyncProviders(options, CloudinaryOptions)
             ]
-        }
-    }
-
-    protected static createAsyncProviders(options : CloudinaryAsyncOptions) : Provider[] {
-        if(options.useExisting || options.useFactory) {
-            return [ this.createAsyncOptionsProvider(options) ];
-        }
-
-        return [
-            this.createAsyncOptionsProvider(options),
-            {
-                provide: options.useClass!,
-                useClass: options.useClass!
-            }
-        ]
-    }
-
-    protected static createAsyncOptionsProvider(options : CloudinaryAsyncOptions) : Provider {
-        if(options.useFactory) {
-            return {
-                provide: CloudinaryOptions,
-                useFactory: options.useFactory,
-                inject: options.inject
-            }
-        }
-
-        return {
-            provide: CloudinaryOptions,
-            useFactory: async (optionsFactory : CloudinaryOptionsFactory) => await optionsFactory.createCloudinaryOptions(),
-            inject: [ options.useExisting || options.useClass ]
         }
     }
 }

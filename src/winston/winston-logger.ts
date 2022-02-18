@@ -33,7 +33,7 @@ export class WinstonLogger implements NestLoggerService {
 
 
     static getInstance() : WinstonLogger {
-        return (Logger as any).instance;
+        return (Logger as unknown as { staticInstanceRef: WinstonLogger }).staticInstanceRef;
     }
 
     static getChild(context : string) {

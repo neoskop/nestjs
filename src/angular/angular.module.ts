@@ -1,30 +1,31 @@
 import 'zone.js';
 import 'zone.js/dist/zone-node';
 
-import { DynamicModule, Module, Provider, Type, NestModule } from '@nestjs/common';
-import { MiddlewareConsumer, ModuleMetadata } from '@nestjs/common/interfaces';
+import { enableProdMode } from '@angular/core';
+import { DynamicModule, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer } from '@nestjs/common/interfaces';
 import cookieParser from 'cookie-parser';
 
-import { AngularRootController } from './angular-root.controller';
-import { ANGULAR_OPTIONS, AngularOptions, AngularLocaleOptions, ANGULAR_LOCALE_OPTIONS } from './tokens';
-import { enableProdMode } from '@angular/core';
+import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 import { AngularLocaleController } from './angular-locale.controller';
+import { AngularRootController } from './angular-root.controller';
+import { ANGULAR_LOCALE_OPTIONS, ANGULAR_OPTIONS, AngularLocaleOptions, AngularOptions } from './tokens';
 
 enableProdMode();
 
-export interface AngularOptionsFactory {
-    createAngularOptions() : Promise<AngularOptions> | AngularOptions;
-}
-export interface AngularLocaleOptionsFactory {
-    createAngularOptions() : Promise<AngularLocaleOptions> | AngularLocaleOptions;
-}
+// export interface AngularOptionsFactory {
+//     createAngularOptions() : Promise<AngularOptions> | AngularOptions;
+// }
+// export interface AngularLocaleOptionsFactory {
+//     createAngularOptions() : Promise<AngularLocaleOptions> | AngularLocaleOptions;
+// }
 
-export interface AngularAsyncOptions<F = AngularOptionsFactory, T = AngularOptions> extends Pick<ModuleMetadata, 'imports'> {
-    useExisting?: Type<F>;
-    useClass?: Type<F>;
-    useFactory?: (...args : any[]) => Promise<T> | T,
-    inject?: any[];
-}
+// export interface AngularAsyncOptions<F = AngularOptionsFactory, T = AngularOptions> extends Pick<ModuleMetadata, 'imports'> {
+//     useExisting?: Type<F>;
+//     useClass?: Type<F>;
+//     useFactory?: (...args : any[]) => Promise<T> | T,
+//     inject?: any[];
+// }
 
 @Module({
     controllers: [
@@ -42,7 +43,7 @@ export class AngularModule implements NestModule {
         }
     }
 
-    static forRootAsync(options : AngularAsyncOptions) : DynamicModule {
+    static forRootAsync(options : AsyncOptions<AngularOptions>) : DynamicModule {
         return {
             module: AngularModule,
             providers: [
@@ -73,7 +74,7 @@ export class AngularLocaleModule implements NestModule {
         }
     }
 
-    static forRootAsync(options : AngularAsyncOptions<AngularLocaleOptionsFactory, AngularLocaleOptions>) : DynamicModule {
+    static forRootAsync(options : AsyncOptions<AngularLocaleOptions>) : DynamicModule {
         return {
             module: AngularLocaleModule,
             providers: [
@@ -86,34 +87,4 @@ export class AngularLocaleModule implements NestModule {
     configure(consumer : MiddlewareConsumer) {
         consumer.apply(cookieParser()).forRoutes('/');
     }
-}
-
-function createAsyncProviders<F, T>(options: AngularAsyncOptions<F, T>, token : any) {
-    if(options.useExisting || options.useFactory) {
-        return [ createAsyncOptionsProvider(options, token) ];
-    }
-
-    return [
-        createAsyncOptionsProvider(options, token),
-        {
-            provide: options.useClass!,
-            useClass: options.useClass!
-        }
-    ];
-}
-
-function createAsyncOptionsProvider<F, T>(options : AngularAsyncOptions<F, T>, token : any) : Provider {
-    if(options.useFactory) {
-        return {
-            provide: token,
-            useFactory: options.useFactory,
-            inject: options.inject
-        };
-    }
-
-    return {
-        provide: token,
-        useFactory: async (factory : AngularOptionsFactory) => await factory.createAngularOptions(),
-        inject: [ options.useExisting || options.useClass ]
-    };
 }

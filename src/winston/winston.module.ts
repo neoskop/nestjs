@@ -53,7 +53,7 @@ export class WinstonModule implements NestModule {
         return {
             provide: WinstonModuleOptions,
             useFactory: async (optionsFactory : WinstonOptionsFactory) => await optionsFactory.createWinstonOptions(),
-            inject: [ options.useExisting || options.useClass ]
+            inject: [ options.useExisting || options.useClass! ]
         }
     }
 
