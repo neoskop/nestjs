@@ -3,7 +3,7 @@ import { ModulesContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 
-import { ExplorableClassDecoratorFactory, createExplorableDecorator, ExplorableClassDecoratorType, ExplorableClassDecoratorClass } from './decorator.factory';
+import { ExplorableClassDecoratorFactory, ExplorableClassDecoratorType, ExplorableClassDecoratorClass } from './decorator.factory';
 
 @Injectable()
 export class ExplorerService {
