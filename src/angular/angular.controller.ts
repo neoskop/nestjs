@@ -2,9 +2,6 @@ import 'zone.js';
 import 'zone.js/dist/zone-node';
 
 import type { Type } from '@angular/core';
-// const requireEsm = require('esm')(module);
-// const { APP_BASE_HREF } = requireEsm('@angular/common') as typeof import('@angular/common');
-import { renderModule, INITIAL_CONFIG } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
 import express from 'express';
 import fs from 'fs';
@@ -97,7 +94,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                             { provide: 'RESPONSE', useValue: response },
                             { provide: (await requireEsm<typeof import('@angular/common')>('@angular/common')).APP_BASE_HREF, useValue: request.baseUrl },
                             {
-                                provide: INITIAL_CONFIG,
+                                provide: (await requireEsm<typeof import('@angular/platform-server')>('@angular/platform-server')).INITIAL_CONFIG,
                                 useValue: {
                                     doc: this._template!,
                                     url: `${request.protocol}://${request.get('host')}${request.url}`
@@ -137,7 +134,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     }
 }
 
-function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof renderModule } {
+function loadBundle(src: string): { Module: Type<any>, renderModule: typeof import('@angular/platform-server').renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof import('@angular/platform-server').renderModule } {
     const bundle = importFresh<any>(path.resolve(src));
 
     if('ModuleFactory' in bundle) {
