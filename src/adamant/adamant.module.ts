@@ -1,6 +1,6 @@
 
-const requireEsm = require('esm')(module);
-const { Injector } = requireEsm('@angular/core') as typeof import('@angular/core');
+// const requireEsm = require('esm')(module);
+// const { Injector } = requireEsm('@angular/core') as typeof import('@angular/core');
 import {
     ADAMANT_CONNECTION_FACTORY,
     ADAMANT_EQUAL_CHECKER,
@@ -16,6 +16,7 @@ import {
 } from '@neoskop/adamant';
 import { DynamicModule, Global, Module, Provider, Type, Inject } from '@nestjs/common';
 import { ModuleMetadata } from '@nestjs/common/interfaces';
+import { requireEsm } from '../utils/require-esm';
 import { AdamantHealthIndicator } from './adamant.health';
 
 
@@ -55,6 +56,7 @@ export async function designDocFactory(...designDocs : any[]) {
         {
             provide: AdamantConnectionManager,
             async useFactory(factory: ConnectionFactory, providers : any[], designDocs : any[], deps : any[], viewWarmUp: 'sync' | 'async' | 'none' | false) {
+                const { Injector } = await requireEsm<typeof import('@angular/core')>('@angular/core')
                 const injector = Injector.create({
                     providers: [
                         { provide: ADAMANT_ID, useFactory: adamantIdFactory, deps: [] },

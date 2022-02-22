@@ -2,8 +2,8 @@ import 'zone.js';
 import 'zone.js/dist/zone-node';
 
 import type { Type } from '@angular/core';
-const requireEsm = require('esm')(module);
-const { APP_BASE_HREF } = requireEsm('@angular/common') as typeof import('@angular/common');
+// const requireEsm = require('esm')(module);
+// const { APP_BASE_HREF } = requireEsm('@angular/common') as typeof import('@angular/common');
 import { renderModule, INITIAL_CONFIG } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
 import express from 'express';
@@ -14,6 +14,7 @@ import importFresh from 'import-fresh';
 
 import { IAngularAppOptions } from './tokens';
 import { IncomingMessage } from 'http';
+import { requireEsm } from '../utils/require-esm';
 
 export interface IHooks {
     pre?(request: express.Request, response: express.Response): void | Promise<void>;
@@ -94,7 +95,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                             ...(this.options.providers || []),
                             { provide: 'REQUEST', useValue: request },
                             { provide: 'RESPONSE', useValue: response },
-                            { provide: APP_BASE_HREF, useValue: request.baseUrl },
+                            { provide: (await requireEsm<typeof import('@angular/common')>('@angular/common')).APP_BASE_HREF, useValue: request.baseUrl },
                             {
                                 provide: INITIAL_CONFIG,
                                 useValue: {
