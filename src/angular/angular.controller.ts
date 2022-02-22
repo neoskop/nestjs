@@ -1,8 +1,9 @@
 import 'zone.js';
 import 'zone.js/dist/zone-node';
 
-import { Type } from '@angular/core';
-import { APP_BASE_HREF } from '@angular/common';
+import type { Type } from '@angular/core';
+const requireEsm = require('esm')(module);
+const { APP_BASE_HREF } = requireEsm('@angular/common') as typeof import('@angular/common');
 import { renderModule, INITIAL_CONFIG } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
 import express from 'express';

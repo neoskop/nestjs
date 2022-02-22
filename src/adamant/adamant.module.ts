@@ -1,4 +1,6 @@
-import { Injector } from '@angular/core';
+
+const requireEsm = require('esm')(module);
+const { Injector } = requireEsm('@angular/core') as typeof import('@angular/core');
 import {
     ADAMANT_CONNECTION_FACTORY,
     ADAMANT_EQUAL_CHECKER,
