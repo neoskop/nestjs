@@ -1,4 +1,4 @@
-import { StaticProvider } from '@angular/core';
+import type { StaticProvider } from '@angular/core';
 import { Request, Response } from 'express';
 import { IHooks } from './angular.controller';
 
