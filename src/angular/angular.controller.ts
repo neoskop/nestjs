@@ -83,9 +83,9 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                         throw new Error('main missing');
                     }
                     await this.hooks?.pre?.(request, response);
-                    const bundle = loadBundle(this.options.main);
+                    const bundle = await loadBundle(this.options.main);
 
-                    let html = await bundle.renderModule('Module' in bundle ? bundle.Module : await bundle.ModuleFactory(), {
+                    let html = await bundle.renderModule(await bundle.ModuleFactory(), {
                         document: this._template!,
                         url: `${request.protocol}://${request.get('host')}${request.url}`,
                         extraProviders: [
@@ -134,24 +134,20 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
     }
 }
 
-function loadBundle(src: string): { Module: Type<any>, renderModule: typeof import('@angular/platform-server').renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof import('@angular/platform-server').renderModule } {
-    const bundle = importFresh<any>(path.resolve(src));
+interface Bundle { 
+    ModuleFactory: () => Promise<Type<unknown>>, 
+    renderModule: typeof import('@angular/platform-server').renderModule 
+}
+const BUNDLE_CACHE = new Map<string, Promise<() => Bundle>>();
 
-    if('ModuleFactory' in bundle) {
-        return {
-            ModuleFactory: bundle.ModuleFactory,
-            renderModule: bundle.renderModule
-        }
+async function loadBundle(src: string): Promise<Bundle> {
+    if(!BUNDLE_CACHE.has(src)) {
+        BUNDLE_CACHE.set(src, (async () => {
+            const code = fs.readFileSync(path.resolve(src), 'utf8');
+
+            return new Function('', `const module = { export: {} };const export = module.export;\n${code}\n;return module.export;`) as () => Bundle;
+        })());
     }
 
-    const moduleKey = Object.keys(bundle).find(k => k.endsWith('Module'));
-
-    if (!moduleKey) {
-        throw new Error(`Cannot find module in "${src}"`);
-    }
-
-    return {
-        Module: bundle[moduleKey],
-        renderModule: bundle.renderModule
-    };
+    return (await BUNDLE_CACHE.get(src))!();
 }
