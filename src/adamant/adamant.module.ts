@@ -53,17 +53,18 @@ export async function designDocFactory(...designDocs : any[]) {
             provide: AdamantConnectionManager,
             async useFactory(factory: ConnectionFactory, providers : any[], designDocs : any[], deps : any[], viewWarmUp: 'sync' | 'async' | 'none' | false) {
                 const { Injector } = await new Function('retrn import("@angular/core")')() as typeof import('@angular/core');
+
                 const injector = Injector.create({
                     providers: [
                         { provide: ADAMANT_ID, useFactory: adamantIdFactory, deps: [] },
                         { provide: ADAMANT_CONNECTION_FACTORY, useValue: factory },
                         { provide: ADAMANT_EQUAL_CHECKER, useFactory: equalCheckerFactory, deps: [] },
                         { provide: ADAMANT_INJECTOR, useExisting: Injector },
-                        { provide: ADAMANT_INJECTOR_FACTORY, useValue: createAngularInjector },
+                        { provide: ADAMANT_INJECTOR_FACTORY, useValue: createAngularInjector.bind(null, Injector) },
                         ...providers.map((provide, index) => ({ provide, useValue: deps[index] }))
                     ]
                 });
-                const manager = new AdamantConnectionManager(factory, injector.get(ADAMANT_ID), injector, createAngularInjector);
+                const manager = new AdamantConnectionManager(factory, injector.get(ADAMANT_ID), injector, createAngularInjector.bind(null, Injector));
                 try {
                     for(const designDoc of designDocs) {
                         const metadata = DesignDocMetadataCollection.create(designDoc.constructor as any);
