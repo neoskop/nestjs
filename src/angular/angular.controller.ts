@@ -84,8 +84,8 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                     }
                     await this.hooks?.pre?.(request, response);
 
-                    const { APP_BASE_HREF } = await new Function('retrn import("@angular/common")')() as typeof import('@angular/common');
-                    const { INITIAL_CONFIG } = await new Function('retrn import("@angular/platform-server")')() as typeof import('@angular/platform-server');
+                    const { APP_BASE_HREF } = await new Function('return import("@angular/common")')() as typeof import('@angular/common');
+                    const { INITIAL_CONFIG } = await new Function('return import("@angular/platform-server")')() as typeof import('@angular/platform-server');
 
                     const bundle = loadBundle(this.options.main);
 

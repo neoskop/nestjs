@@ -52,7 +52,7 @@ export async function designDocFactory(...designDocs : any[]) {
         {
             provide: AdamantConnectionManager,
             async useFactory(factory: ConnectionFactory, providers : any[], designDocs : any[], deps : any[], viewWarmUp: 'sync' | 'async' | 'none' | false) {
-                const { Injector } = await new Function('retrn import("@angular/core")')() as typeof import('@angular/core');
+                const { Injector } = await new Function('return import("@angular/core")')() as typeof import('@angular/core');
 
                 const injector = Injector.create({
                     providers: [
