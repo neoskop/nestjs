@@ -1,7 +1,6 @@
 import 'zone.js';
 import 'zone.js/dist/zone-node';
 
-import { enableProdMode } from '@angular/core';
 import { DynamicModule, Module, NestModule } from '@nestjs/common';
 import { MiddlewareConsumer } from '@nestjs/common/interfaces';
 import cookieParser from 'cookie-parser';
@@ -10,8 +9,6 @@ import { AsyncOptions, createAsyncProviders } from '../utils/providers';
 import { AngularLocaleController } from './angular-locale.controller';
 import { AngularRootController } from './angular-root.controller';
 import { ANGULAR_LOCALE_OPTIONS, ANGULAR_OPTIONS, AngularLocaleOptions, AngularOptions } from './tokens';
-
-enableProdMode();
 
 // export interface AngularOptionsFactory {
 //     createAngularOptions() : Promise<AngularOptions> | AngularOptions;

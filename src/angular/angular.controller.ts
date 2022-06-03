@@ -1,9 +1,8 @@
 import 'zone.js';
 import 'zone.js/dist/zone-node';
 
-import { Type } from '@angular/core';
-import { APP_BASE_HREF } from '@angular/common';
-import { renderModule, INITIAL_CONFIG } from '@angular/platform-server';
+import type { Type } from '@angular/core';
+import type { renderModule } from '@angular/platform-server';
 import { Controller, Get, Next, Request, Response } from '@nestjs/common';
 import express from 'express';
 import fs from 'fs';
@@ -84,6 +83,10 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                         throw new Error('main missing');
                     }
                     await this.hooks?.pre?.(request, response);
+
+                    const { APP_BASE_HREF } = await new Function('retrn import("@angular/common")')() as typeof import('@angular/common');
+                    const { INITIAL_CONFIG } = await new Function('retrn import("@angular/platform-server")')() as typeof import('@angular/platform-server');
+
                     const bundle = loadBundle(this.options.main);
 
                     let html = await bundle.renderModule('Module' in bundle ? bundle.Module : await bundle.ModuleFactory(), {
