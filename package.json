@@ -48,7 +48,6 @@
     "zone.js": "0.10.2"
   },
   "dependencies": {
-    "import-fresh": "^3.3.0",
     "tslib": "^2.2.0"
   },
   "peerDependencies": {

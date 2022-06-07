@@ -8,7 +8,6 @@ import express from 'express';
 import fs from 'fs';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
-import importFresh from 'import-fresh';
 
 import { IAngularAppOptions } from './tokens';
 import { IncomingMessage } from 'http';
@@ -106,7 +105,10 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
                             }
                         ]
                     });
-
+                    // if redirect was called
+                    if(response.writableFinished) {
+                        return;
+                    }
                     response.header('Content-Type', 'text/html');
                     html = (await this.hooks?.post?.(html, request, response)) || html;
                     if (this.nonceFactory) {
@@ -139,7 +141,8 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
 }
 
 function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof renderModule } {
-    const bundle = importFresh<any>(path.resolve(src));
+    const filePath = path.resolve(src);
+    const bundle = require(filePath);
 
     if('ModuleFactory' in bundle) {
         return {
