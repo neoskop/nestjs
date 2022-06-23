@@ -142,7 +142,7 @@ export class AngularController<T extends IAngularAppOptions = IAngularAppOptions
 
 function loadBundle(src: string): { Module: Type<any>, renderModule: typeof renderModule } | { ModuleFactory: () => Promise<Type<unknown>>, renderModule: typeof renderModule } {
     const filePath = path.resolve(src);
-    const bundle = require(filePath);
+    const bundle = eval('require')(filePath);
 
     if('ModuleFactory' in bundle) {
         return {
