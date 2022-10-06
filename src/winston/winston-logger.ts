@@ -1,8 +1,7 @@
 import { LoggerService as NestLoggerService, Logger } from '@nestjs/common';
 import chalk, { Chalk } from 'chalk';
-import { inspect } from 'util';
 import { fletcher } from '../utils/fletcher';
-import { Logger as _WinstonLogger } from 'winston';
+import { LeveledLogMethod, Logger as _WinstonLogger } from 'winston';
 
 const contextToColor = new Map<string, Chalk>();
 
@@ -27,6 +26,12 @@ export function getLevelColor(level : 'log' | 'error' | 'warn' | 'debug' | 'verb
         default: return chalk;
     }
 }
+
+export type AdditionalMeta = [...object[], string] | object[];
+export type Message = string | {
+    message: string;
+};
+export type LogFn = (message: Message, ...additional: AdditionalMeta) => void;
 
 export class WinstonLogger implements NestLoggerService {
     protected readonly logger : _WinstonLogger;
@@ -53,50 +58,35 @@ export class WinstonLogger implements NestLoggerService {
         return this.logger;
     }
 
-    log(message: any, context?: string): void {
+    protected _parseMessage(message: Message): { message: string, meta: object } {
         if(typeof message === 'object') {
-            const { message: msg, ...rest } = message;
-            this.logger.info(String(msg), { context, ...rest });
+            const { message: msg, ...meta } = message;
+            return { message: String(msg), meta };
         } else {
-            this.logger.info(String(message), { context });
+            return { message: String(message), meta: {} };
         }
     }
 
-    error(message: any, trace?: string, context?: string): void {
-        if(typeof message === 'object') {
-            const { message: msg, ...rest } = message;
-            this.logger.error(String(msg), { trace, context, ...rest });
-        } else {
-            this.logger.error(String(message), { trace, context });
+    protected _parseMeta(meta: object, additional: AdditionalMeta) {
+        if(additional.length > 0 && typeof additional[additional.length - 1] === 'string') {
+            additional.push({ context: additional.pop() });
         }
+
+        return (additional as object[]).reduce((t, c) => ({ ...t, ...c }), meta);
     }
 
-    warn(message: any, context?: string): void {
-        if(typeof message === 'object') {
-            const { message: msg, ...rest } = message;
-            this.logger.warn(String(msg), { context, ...rest });
-        } else {
-            this.logger.warn(String(message), { context });
-        }
+    protected _log(level: Extract<keyof _WinstonLogger, 'log' | 'error' | 'warn' | 'debug' | 'verbose'>, msg: string|{ message: string }, ...additional: AdditionalMeta) {
+        let { message, meta } = this._parseMessage(msg);
+        meta = this._parseMeta(meta, additional);
+
+        (this.logger[level] as LeveledLogMethod)(message, meta);
     }
 
-    debug(message: any, context?: string): void {
-        if(typeof message === 'object') {
-            const { message: msg, ...rest } = message;
-            this.logger.debug(String(msg), { context, ...rest });
-        } else {
-            this.logger.debug(String(message), { context });
-        }
-    }
-
-    verbose(message: any, context?: string): void {
-        if(typeof message === 'object') {
-            const { message: msg, ...rest } = message;
-            this.logger.verbose(String(msg), { context, ...rest });
-        } else {
-            this.logger.verbose(String(message), { context });
-        }
-    }
+    log: LogFn = this._log.bind(this, 'log');
+    error: LogFn = this._log.bind(this, 'error');
+    warn: LogFn = this._log.bind(this, 'warn');
+    debug: LogFn = this._log.bind(this, 'debug');
+    verbose: LogFn = this._log.bind(this, 'verbose');
 
     http(message: string, meta: object) {
         this.logger.http(message, meta);
