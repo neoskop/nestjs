@@ -32,13 +32,19 @@ export function getLevelColor(level: 'log' | 'error' | 'warn' | 'debug' | 'verbo
     }
 }
 
-export type AdditionalMeta = [...object[], string] | object[];
+export type AdditionalMeta = [...object[], string, string] | [...object[], string] | object[];
 
 type Message =
     | string
     | {
           message: string;
       };
+
+function stringToMeta(meta: AdditionalMeta, index: number, key: string) {
+    if (typeof meta[index] === 'string') {
+        meta[index] = { [key]: meta[index] };
+    }
+}
 
 export class WinstonLogger implements NestLoggerService {
     protected readonly logger: _WinstonLogger;
@@ -74,9 +80,7 @@ export class WinstonLogger implements NestLoggerService {
     }
 
     protected _parseMeta(meta: object, additional: AdditionalMeta) {
-        if (additional.length > 0 && typeof additional[additional.length - 1] === 'string') {
-            additional.push({ context: additional.pop() });
-        }
+        stringToMeta(additional, additional.length - 1, 'context');
 
         return (additional as object[]).reduce((t, c) => ({ ...t, ...c }), meta);
     }
@@ -99,6 +103,7 @@ export class WinstonLogger implements NestLoggerService {
     log = this.info;
 
     error(message: Message, ...additional: AdditionalMeta): void {
+        stringToMeta(additional, additional.length - 2, 'stack');
         this._log('error', message, ...additional);
     }
 
