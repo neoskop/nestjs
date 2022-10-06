@@ -28,10 +28,10 @@ export function getLevelColor(level : 'log' | 'error' | 'warn' | 'debug' | 'verb
 }
 
 export type AdditionalMeta = [...object[], string] | object[];
-export type Message = string | {
+
+type Message = string | {
     message: string;
 };
-export type LogFn = (message: Message, ...additional: AdditionalMeta) => void;
 
 export class WinstonLogger implements NestLoggerService {
     protected readonly logger : _WinstonLogger;
@@ -82,11 +82,25 @@ export class WinstonLogger implements NestLoggerService {
         (this.logger[level] as LeveledLogMethod)(message, meta);
     }
 
-    log: LogFn = this._log.bind(this, 'log');
-    error: LogFn = this._log.bind(this, 'error');
-    warn: LogFn = this._log.bind(this, 'warn');
-    debug: LogFn = this._log.bind(this, 'debug');
-    verbose: LogFn = this._log.bind(this, 'verbose');
+    log(message: Message, ...additional: AdditionalMeta): void {
+        this._log('log', message, ...additional);
+    }
+
+    error(message: Message, ...additional: AdditionalMeta): void {
+        this._log('error', message, ...additional);
+    }
+
+    warn(message: Message, ...additional: AdditionalMeta): void {
+        this._log('warn', message, ...additional);
+    }
+
+    debug(message: Message, ...additional: AdditionalMeta): void {
+        this._log('debug', message, ...additional);
+    }
+
+    verbose(message: Message, ...additional: AdditionalMeta): void {
+        this._log('verbose', message, ...additional);
+    }
 
     http(message: string, meta: object) {
         this.logger.http(message, meta);
