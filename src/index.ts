@@ -1,5 +1,4 @@
 export * from './adamant';
-export * from './angular';
 export * from './cloudinary';
 export * from './crypto';
 export * from './explorer';
